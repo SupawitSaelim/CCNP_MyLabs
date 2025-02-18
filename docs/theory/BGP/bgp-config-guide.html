@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGP Configuration Guide</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        .method {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+            border-radius: 0 5px 5px 0;
+        }
+        pre {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .explanation {
+            color: #666;
+            font-style: italic;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BGP Configuration Guide</h1>
+
+        <div class="method">
+            <h2>1. Basic BGP Peering through Loopback</h2>
+            <div class="explanation">การตั้งค่า BGP พื้นฐานผ่าน Loopback Interface</div>
+            <pre>
+R1(config)#router bgp 100
+R1(config-router)#neighbor 2.2.2.2 remote-as 200
+R1(config-router)#neighbor 2.2.2.2 update-source lo0</pre>
+            <p>• <code>update-source</code> - ใช้ระบุ source IP ที่จะใช้สร้าง BGP session</p>
+        </div>
+
+        <div class="method">
+            <h2>2. Disable Connected Check Method</h2>
+            <div class="explanation">วิธีปิดการตรวจสอบ Connected Neighbor</div>
+            <pre>
+R1(config-router)#neighbor 2.2.2.2 disable-connected-check</pre>
+            <p>• ปิดการตรวจสอบว่าต้องเป็น directly connected neighbor</p>
+        </div>
+
+        <div class="method">
+            <h2>3. EBGP Multihop Method</h2>
+            <div class="explanation">วิธีการตั้งค่า EBGP ให้สามารถ peer ข้าม hop ได้</div>
+            <pre>
+R1(config-router)#neighbor 2.2.2.2 ebgp-multihop 2</pre>
+            <div class="note">
+                <p>• ระบุจำนวน hop ที่ยอมให้ peer กันได้</p>
+                <p>• ถ้าตั้งค่ามากกว่า 1 จะปิด connected check โดยอัตโนมัติ</p>
+            </div>
+        </div>
+
+        <div class="method">
+            <h2>4. TTL Security Method</h2>
+            <div class="explanation">วิธีการตั้งค่าความปลอดภัยด้วย TTL</div>
+            <pre>
+R1(config-router)#neighbor 2.2.2.2 ttl-security hops 2</pre>
+            <div class="note">
+                <p>• ตั้งค่า TTL security เพื่อป้องกัน BGP spoofing</p>
+                <p>• ถ้าตั้งค่ามากกว่า 1 จะปิด connected check โดยอัตโนมัติ</p>
+                <p>• จะตั้ง outgoing TTL = 255 และตรวจสอบ incoming TTL</p>
+            </div>
+        </div>
+
+        <div class="method">
+            <h2>5. PPPoE Configuration</h2>
+            <div class="explanation">การตั้งค่า PPPoE เพื่อสร้าง Direct Connection</div>
+            <h3>PPPoE Server (R1)</h3>
+            <pre>
+# Create and configure virtual template
+R1(config)#interface virtual-template 12
+R1(config-if)#ip unnumbered lo0
+
+# Create and configure BBA group
+R1(config)#bba-group pppoe tst
+R1(config-bba-group)#virtual-template 12
+
+# Configure physical interface
+R1(config)#interface g0/2
+R1(config-if)#no ip address
+R1(config-if)#pppoe enable group tst</pre>
+
+            <h3>PPPoE Client (R2)</h3>
+            <pre>
+# Create and configure dialer interface
+R2(config)#interface dialer 21
+R2(config-if)#ip unnumbered lo0
+R2(config-if)#encapsulation ppp
+R2(config-if)#dial pool 100
+
+# Configure physical interface
+R2(config)#interface g0/1
+R2(config-if)#no ip address
+R2(config-if)#pppoe-client dial-pool-number 100</pre>
+            <div class="note">
+                <p>• สร้าง Virtual Template ที่ R1 เพื่อเป็น template สำหรับ interface</p>
+                <p>• สร้าง BBA Group เพื่อผูก Virtual Template กับ PPPoE</p>
+                <p>• ที่ R2 สร้าง Dialer Interface และผูกกับ physical interface</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

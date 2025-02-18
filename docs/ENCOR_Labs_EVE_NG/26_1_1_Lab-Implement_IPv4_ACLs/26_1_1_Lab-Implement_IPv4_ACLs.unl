@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<lab name="26_1_1_Lab-Implement IPv4 ACLs" version="1" scripttimeout="300" lock="0">
+  <topology>
+    <nodes>
+      <node id="1" name="R1" type="iol" template="iol" image="i86bi_LinuxL3-AdvEnterpriseK9-M2_157_3_May_2018.bin" ethernet="1" nvram="1024" ram="1024" serial="1" console="" delay="0" icon="Router.png" config="0" left="267" top="147">
+        <interface id="0" name="e0/0" type="ethernet" network_id="1"/>
+        <interface id="1" type="serial" name="s1/0" remote_id="2" remote_if="1"/>
+      </node>
+      <node id="2" name="R3" type="iol" template="iol" image="i86bi_LinuxL3-AdvEnterpriseK9-M2_157_3_May_2018.bin" ethernet="1" nvram="1024" ram="1024" serial="1" console="" delay="0" icon="Router.png" config="0" left="582" top="147">
+        <interface id="0" name="e0/0" type="ethernet" network_id="2"/>
+        <interface id="1" type="serial" name="s1/0" remote_id="1" remote_if="1"/>
+      </node>
+      <node id="3" name="D1" type="iol" template="iol" image="i86bi_linux_l2-adventerprisek9-ms.SSA.high_iron_20190423.bin" ethernet="1" nvram="1024" ram="1024" serial="0" console="" delay="0" icon="Switch L3.png" config="0" left="267" top="273">
+        <interface id="0" name="e0/0" type="ethernet" network_id="1"/>
+        <interface id="16" name="e0/1" type="ethernet" network_id="3"/>
+      </node>
+      <node id="4" name="D2" type="iol" template="iol" image="i86bi_linux_l2-adventerprisek9-ms.SSA.high_iron_20190423.bin" ethernet="1" nvram="1024" ram="1024" serial="0" console="" delay="0" icon="Switch L3.png" config="0" left="582" top="279">
+        <interface id="0" name="e0/0" type="ethernet" network_id="2"/>
+        <interface id="16" name="e0/1" type="ethernet" network_id="4"/>
+        <interface id="32" name="e0/2" type="ethernet" network_id="5"/>
+      </node>
+      <node id="5" name="A1" type="iol" template="iol" image="i86bi_linux_l2-adventerprisek9-ms.SSA.high_iron_20190423.bin" ethernet="1" nvram="1024" ram="1024" serial="0" console="" delay="0" icon="Switch.png" config="0" left="429" top="291">
+        <interface id="0" name="e0/0" type="ethernet" network_id="5"/>
+      </node>
+      <node id="6" name="Linux6" type="qemu" template="linux" image="linux-kali-2023" console="vnc" cpu="2" cpulimit="0" ram="4096" ethernet="1" uuid="1f00f2db-18ed-4772-827d-2c8eb2670918" firstmac="00:50:00:00:06:00" qemu_options="-machine type=pc,accel=kvm -vga std -usbdevice tablet -boot order=cd -cpu host" qemu_version="2.12.0" qemu_arch="x86_64" qemu_nic="virtio-net-pci" delay="0" icon="Kali.png" config="0" left="150" top="276">
+        <interface id="0" name="e0" type="ethernet" network_id="3"/>
+      </node>
+      <node id="7" name="Linux7" type="qemu" template="linux" image="linux-kali-2023" console="vnc" cpu="2" cpulimit="0" ram="4096" ethernet="1" uuid="95706f9d-eaf9-4d62-8807-aa833d8ec0d2" firstmac="00:50:00:00:07:00" qemu_options="-machine type=pc,accel=kvm -vga std -usbdevice tablet -boot order=cd -cpu host" qemu_version="2.12.0" qemu_arch="x86_64" qemu_nic="virtio-net-pci" delay="0" icon="Kali.png" config="0" left="708" top="282">
+        <interface id="0" name="e0" type="ethernet" network_id="4"/>
+      </node>
+    </nodes>
+    <networks>
+      <network id="1" type="bridge" name="Net-D1iface_0" left="327" top="313" visibility="0"/>
+      <network id="2" type="bridge" name="Net-D2iface_0" left="639" top="319" visibility="0"/>
+      <network id="3" type="bridge" name="Net-Linux6iface_0" left="210" top="316" visibility="0"/>
+      <network id="4" type="bridge" name="Net-Linux7iface_0" left="780" top="328" visibility="0"/>
+      <network id="5" type="bridge" name="Net-A1iface_0" left="537" top="331" visibility="0"/>
+    </networks>
+  </topology>
+</lab>

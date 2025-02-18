@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGP Protocol Overview</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            padding-left: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .highlight-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        li:before {
+            content: "•";
+            color: #3498db;
+            font-weight: bold;
+            position: absolute;
+            left: -15px;
+        }
+
+        .important-note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BGP (Border Gateway Protocol) Overview</h1>
+
+        <div class="section">
+            <h2>1. BGP Characteristics</h2>
+            <ul>
+                <li>Unlike OSPF and EIGRP, BGP doesn't implement its own transport protocol</li>
+                <li>Uses TCP as its transport protocol (TCP port 179)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>2. BGP Session Establishment</h2>
+            <div class="highlight-box">
+                <h3>Two-Step Process:</h3>
+                <ul>
+                    <li>Step 1: TCP Session Establishment (TCP Three-way Handshake)</li>
+                    <li>Step 2: BGP Peering Session Establishment</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>3. Router Operation</h2>
+            <ul>
+                <li>When BGP is enabled, router listens on TCP port 179</li>
+                <li>Router acts as both TCP Client and Server</li>
+                <li>In simultaneous SYN case, router with higher BGP ID becomes Client</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>4. BGP Peer Types</h2>
+            <ul>
+                <li>iBGP (Internal BGP): When ASNs match</li>
+                <li>eBGP (External BGP): When ASNs differ</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>5. BGP Implementation</h2>
+            <ul>
+                <li>Primary protocol for Service Provider Networks</li>
+                <li>Used in enterprises with multiple ISP connections (Multi-homing)</li>
+                <li>Core protocol of Internet Backbone routing</li>
+            </ul>
+        </div>
+
+        <div class="important-note">
+            <h3>Key Points to Remember:</h3>
+            <ul>
+                <li>BGP operates on TCP port 179</li>
+                <li>Requires Neighbor Configuration on both sides</li>
+                <li>Ideal for large networks requiring detailed route control</li>
+                <li>Supports policy-based routing and route filtering</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

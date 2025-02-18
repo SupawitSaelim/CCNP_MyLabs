@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGP Attributes Documentation</title>
+    <style>
+        :root {
+            --primary-color: #2d3748;
+            --secondary-color: #4a5568;
+            --accent-color: #3182ce;
+            --background-color: #ffffff;
+            --code-background: #f7fafc;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--primary-color);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: var(--background-color);
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        ul {
+            padding-left: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        code {
+            font-family: 'SF Mono', Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: var(--code-background);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background-color: var(--code-background);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            padding: 0;
+            background-color: transparent;
+        }
+
+        .note {
+            background-color: #ebf8ff;
+            border-left: 4px solid var(--accent-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>BGP Attributes และการกำหนดค่าต่างๆ</h1>
+
+    <h2>1. Origin Code</h2>
+    <p>เป็น attribute ที่บอกที่มาของ route มี 3 ประเภท:</p>
+    <ul>
+        <li><strong>IGP (i) - ค่า 0:</strong> มาจากคำสั่ง network ใน BGP โดยตรง (น่าเชื่อถือที่สุด)</li>
+        <li><strong>EGP (e) - ค่า 1:</strong> มาจาก External Gateway Protocol (ไม่ค่อยใช้แล้ว)</li>
+        <li><strong>INCOMPLETE (?) - ค่า 2:</strong> มาจากการ redistribute (น่าเชื่อถือน้อยที่สุด)</li>
+    </ul>
+    <pre><code>router bgp 100
+network 192.168.1.0 mask 255.255.255.0  // จะได้ Origin = IGP
+redistribute connected                   // จะได้ Origin = INCOMPLETE</code></pre>
+
+    <h2>2. MED (Multi-Exit Discriminator)</h2>
+    <ul>
+        <li>ใช้บอก preference ของเส้นทางเข้าสู่ AS</li>
+        <li>ค่ายิ่งน้อยยิ่งดี</li>
+        <li>โดย default จะเปรียบเทียบเฉพาะ MED จาก AS เดียวกัน</li>
+    </ul>
+    <pre><code>router bgp 100
+bgp always-compare-med              // เปรียบเทียบ MED แม้ต่าง AS
+neighbor 1.1.1.1 route-map MED out  // ใช้ route-map กำหนดค่า MED
+route-map MED permit 10
+set metric 100                      // กำหนดค่า MED = 100</code></pre>
+
+    <h2>3. AS-Path</h2>
+    <ul>
+        <li>แสดงลำดับของ AS ที่ route ผ่านมา</li>
+        <li>ใช้ในการป้องกัน loop และเลือกเส้นทาง</li>
+        <li>AS-Path ที่สั้นกว่าจะถูกเลือกก่อน</li>
+    </ul>
+    <pre><code>route-map PREP permit 10
+set as-path prepend 100 100 100    // เพิ่ม AS 100 จำนวน 3 ครั้ง
+router bgp 100
+neighbor 2.2.2.2 route-map PREP out</code></pre>
+
+    <h2>4. Route-Map สำหรับ BGP</h2>
+    <pre><code>route-map NAME permit|deny sequence
+match ip address prefix-list NAME   // จับคู่ prefix
+match interface INTERFACE          // จับคู่ interface
+set metric VALUE                   // กำหนด MED
+set as-path prepend AS AS AS      // ทำ AS-Path Prepend</code></pre>
+
+    <h2>5. คำสั่งตรวจสอบ</h2>
+    <pre><code>show ip bgp                        // แสดง BGP table ทั้งหมด
+show ip bgp A.B.C.D               // แสดงข้อมูลเฉพาะ prefix
+show ip bgp neighbors             // แสดงข้อมูล neighbors
+show ip bgp summary              // แสดงสรุป BGP sessions
+show route-map                   // แสดง route-maps ทั้งหมด</code></pre>
+
+    <h2>6. BGP Path Selection Process</h2>
+    <p>ลำดับการพิจารณา:</p>
+    <ol>
+        <li>Weight (local to router)</li>
+        <li>Local Preference</li>
+        <li>Local Originated routes</li>
+        <li>AS Path Length</li>
+        <li>Origin Code</li>
+        <li>MED</li>
+        <li>eBGP over iBGP</li>
+        <li>IGP metric to NEXT_HOP</li>
+        <li>Router ID</li>
+    </ol>
+
+    <h2>7. ตัวอย่างการ Config ทั้งหมด</h2>
+    <pre><code>router bgp 100
+neighbor 1.1.1.1 remote-as 200
+neighbor 1.1.1.1 update-source loopback 0
+neighbor 1.1.1.1 ebgp-multihop 3
+neighbor 1.1.1.1 route-map POLICY out
+route-map POLICY permit 10
+match ip address prefix-list PL_NAME
+set metric 100
+set as-path prepend 100 100</code></pre>
+
+    <h2>8. การ Redistribute เข้า BGP</h2>
+    <pre><code>router bgp 100
+redistribute connected route-map CONNECTED
+route-map CONNECTED permit 10
+match interface fastethernet 0/0</code></pre>
+
+    <h2>9. ข้อควรระวัง</h2>
+    <div class="note">
+        <ul>
+            <li>MED โดย default เปรียบเทียบเฉพาะใน AS เดียวกัน</li>
+            <li>AS-Path มีความสำคัญกว่า MED ในการเลือกเส้นทาง</li>
+            <li>ต้องระวังเรื่อง routing loop เมื่อทำ redistribution</li>
+            <li>ควรใช้ route-map ในการ filter routes เสมอเมื่อทำ redistribution</li>
+        </ul>
+    </div>
+</body>
+</html>

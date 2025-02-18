@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGP และ BGP Attributes</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', -apple, system-ui, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: var(--bg-color);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        .attribute-type {
+            background: #f1f5f9;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        .attribute-type h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        ul {
+            list-style-position: inside;
+            margin-left: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .process-list {
+            background: #e0e7ff;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        .process-list ol {
+            list-style-position: inside;
+            margin-left: 1rem;
+        }
+
+        .use-cases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .use-case {
+            background: #dbeafe;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        .highlight {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Border Gateway Protocol (BGP) และ BGP Attributes</h1>
+        
+        <section>
+            <p>Border Gateway Protocol (BGP) คือโปรโตคอลสำหรับการแลกเปลี่ยนข้อมูลการเชื่อมต่อเครือข่ายระหว่าง AS (Autonomous System) บนอินเทอร์เน็ต BGP ช่วยให้แต่ละ AS สามารถประกาศเครือข่ายของตนเอง ทำให้สามารถรู้จักเครือข่ายของ AS อื่นๆ และทำให้มั่นใจได้ว่าจะมีการเชื่อมต่อแบบ end-to-end ทั่วทั้งเครือข่ายทั่วโลก</p>
+            
+            <p>คุณสมบัติสำคัญของ BGP คือความสามารถในการให้แต่ละ AS กำหนดนโยบายและความต้องการของตนเองในการจัดการเส้นทางการส่งข้อมูลเข้าและออกจากเครือข่าย นโยบายและความต้องการเหล่านี้ถูกส่งผ่าน BGP attributes ซึ่งเป็นข้อมูลที่แนบมากับการประกาศเครือข่าย</p>
+        </section>
+
+        <section>
+            <h2>BGP Attributes คืออะไร?</h2>
+            <p>BGP attributes คือองค์ประกอบที่ BGP router แนบมาเพื่ออธิบายเครือข่ายต่างๆ ที่รวมอยู่ในข้อความอัปเดต BGP ของมัน เครือข่ายประกอบด้วยที่อยู่เครือข่ายและซับเน็ตมาสก์ เช่น 192.168.1.0/24 ข้อความอัปเดต BGP คือการสื่อสารที่ส่งโดย BGP router ไปยังเพียร์ (BGP router อื่นๆ) เพื่อประกาศหรือถอนเครือข่ายออกจากฐานความรู้ของพวกเขา</p>
+        </section>
+
+        <section>
+            <h2>ประเภทของ BGP Attributes</h2>
+            
+            <div class="attribute-type">
+                <h3>1. Well-known Mandatory Attributes</h3>
+                <p>ต้องมีในทุกการประกาศเส้นทางและทุก BGP speakers ต้องรู้จัก</p>
+                <ul>
+                    <li>AS-PATH: รายการตัวเลขที่แสดงเส้นทางที่เครือข่ายผ่านมาก่อนถึง router ปัจจุบัน</li>
+                    <li>NEXT-HOP: IP address ของ router ที่เป็นจุดต่อไปในการไปถึงเครือข่ายปลายทาง</li>
+                    <li>Origin: แสดงที่มาของเครือข่ายใน BGP system มี 3 ค่า: IGP, EGP, หรือ Incomplete</li>
+                </ul>
+            </div>
+
+            <div class="attribute-type">
+                <h3>2. Well-known Discretionary Attributes</h3>
+                <p>ทุก BGP speakers ต้องรู้จักแต่ไม่จำเป็นต้องมีในการประกาศเส้นทาง</p>
+                <ul>
+                    <li>Local Preference: แสดงความต้องการสำหรับเส้นทางภายใน AS</li>
+                    <li>Atomic aggregate: แสดงว่าเครือข่ายถูกรวมโดย BGP router หรือไม่</li>
+                </ul>
+            </div>
+
+            <div class="attribute-type">
+                <h3>3. Optional Transitive Attributes</h3>
+                <p>ไม่จำเป็นต้องรองรับโดยทุก BGP implementations</p>
+                <ul>
+                    <li>Community: ค่าที่ระบุกลุ่มของเส้นทางที่มีคุณสมบัติหรือนโยบายร่วมกัน</li>
+                    <li>Aggregator: แสดง AS number และ IP address ของ router ที่ทำการรวมเส้นทาง</li>
+                </ul>
+            </div>
+
+            <div class="attribute-type">
+                <h3>4. Optional Non-transitive Attributes</h3>
+                <p>อาจไม่ถูกรู้จักโดยทุก BGP speaker และต้องไม่ส่งต่อเกิน next-hop router ถ้าไม่ถูกรู้จัก</p>
+                <ul>
+                    <li>Multi-exit-discriminator (MED): แสดงความต้องการสำหรับเส้นทางระหว่างหลายเส้นทางจาก AS เดียวกัน</li>
+                    <li>Originator_ID: ใช้ใน BGP Route Reflector เพื่อป้องกัน routing loops</li>
+                    <li>Cluster: ใช้ใน Route Reflector configurations เพื่อป้องกัน routing loops</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>กระบวนการตัดสินใจของ BGP</h2>
+            <div class="process-list">
+                <p>เมื่อ BGP router ได้รับหลายเส้นทางไปยังปลายทางเดียวกัน จะใช้กระบวนการตัดสินใจเพื่อเลือกเส้นทางที่ดีที่สุด โดยมีลำดับดังนี้:</p>
+                <ol>
+                    <li>Highest Local Preference</li>
+                    <li>Shortest AS_PATH</li>
+                    <li>Lowest Origin Type</li>
+                    <li>Lowest MULTI_EXIT_DISC</li>
+                    <li>eBGP over iBGP</li>
+                    <li>Lowest IGP Metric</li>
+                    <li>Oldest Path</li>
+                    <li>Lowest BGP Router ID</li>
+                </ol>
+            </div>
+        </section>
+
+        <section>
+            <h2>กรณีการใช้งาน BGP Attributes</h2>
+            <div class="use-cases">
+                <div class="use-case">
+                    <h3>Traffic Engineering</h3>
+                    <p>ปรับแต่งเส้นทางการส่งข้อมูลและกระจายโหลด</p>
+                </div>
+                <div class="use-case">
+                    <h3>Route Filtering</h3>
+                    <p>ควบคุมการประกาศเส้นทาง</p>
+                </div>
+                <div class="use-case">
+                    <h3>Redundancy and Failover</h3>
+                    <p>สร้างเครือข่ายที่มีความทนทานและรองรับการสำรองข้อมูล</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>ความสำคัญของ BGP Attributes</h2>
+            <p>BGP attributes เป็นส่วนสำคัญของการเดินทางข้อมูลใน BGP เนื่องจากให้ข้อมูลเกี่ยวกับคุณลักษณะและความต้องการของเส้นทาง การเข้าใจการทำงานของ BGP attributes และผลกระทบต่อกระบวนการเลือกเส้นทางเป็นสิ่งจำเป็นสำหรับผู้ที่ต้องการเชี่ยวชาญการจัดการเส้นทางใน BGP</p>
+        </section>
+    </div>
+</body>
+</html>

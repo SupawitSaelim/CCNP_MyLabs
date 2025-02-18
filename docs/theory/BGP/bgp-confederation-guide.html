@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        .section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border-left: 5px solid #3498db;
+        }
+        .code-block {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        .example {
+            background-color: #e8f4f8;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #34495e;
+            margin-top: 25px;
+        }
+        .path-flow {
+            background-color: #fff;
+            padding: 15px;
+            border-left: 3px solid #27ae60;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>BGP Confederations Guide</h1>
+    </div>
+
+    <div class="section">
+        <h2>Overview</h2>
+        <p>BGP Confederations เป็นวิธีการแบ่ง AS ขนาดใหญ่ออกเป็น sub-AS เล็กๆ เพื่อลดปัญหา full-mesh iBGP peering ที่ต้องเชื่อมต่อทุก router เข้าด้วยกัน</p>
+        <p>ตัวอย่างเช่น AS 123 สามารถแบ่งเป็น 2 confederation sub-AS คือ 65023 และ 65001</p>
+    </div>
+
+    <div class="section">
+        <h2>การกำหนด Confederation</h2>
+        <div class="code-block">
+bgp confederation identifier 123    # กำหนด AS จริงที่โลกภายนอกมองเห็น
+bgp confederation peers 65001      # ระบุ sub-AS อื่นที่อยู่ใน confederation เดียวกัน</div>
+        <p>หากไม่กำหนด confederation peers router จะมองว่าเป็น normal eBGP peer ทำให้ลบ AS_PATH ของ confederation ออกก่อนส่งต่อ</p>
+    </div>
+
+    <div class="section">
+        <h2>EBGP Multihop Configuration</h2>
+        <div class="code-block">
+neighbor 1.1.1.1 ebgp-multihop 2</div>
+        <p>จำเป็นสำหรับ eBGP peering ที่ใช้ loopback เพราะ default TTL=1 แต่ไม่จำเป็นสำหรับ iBGP เพราะ TTL=255</p>
+    </div>
+
+    <div class="section">
+        <h2>Update Source Configuration</h2>
+        <div class="code-block">
+neighbor x.x.x.x update-source Loopback0</div>
+        <p>ใช้ระบุ interface ที่จะใช้เป็นต้นทางในการสร้าง BGP session</p>
+    </div>
+
+    <div class="section">
+        <h2>Prefix Propagation Path</h2>
+        <div class="path-flow">
+            <p>Router รับ prefix จาก external AS ผ่าน eBGP</p>
+            <p>ส่งต่อภายใน sub-AS เดียวกันผ่าน iBGP</p>
+            <p>ส่งระหว่าง sub-AS ผ่าน confederation eBGP</p>
+        </div>
+        <p>ใน BGP table จะเห็น path ที่มี confederation sub-AS อยู่ในวงเล็บ เช่น (65023) 45 และจะถูกลบออกเมื่อส่งออกนอก confederation</p>
+    </div>
+
+    <div class="section">
+        <h2>Next-Hop-Self Configuration</h2>
+        <div class="code-block">
+neighbor 2.2.2.2 next-hop-self</div>
+        <p>ใช้เปลี่ยน next-hop เป็นตัวเอง สำคัญในการส่งต่อ route ระหว่าง iBGP peers</p>
+    </div>
+
+    <div class="section">
+        <h2>ตัวอย่างการทำงาน Confederation</h2>
+        <h3>กรณีที่ 1: มีการกำหนด confederation peers ถูกต้อง</h3>
+        <div class="code-block">
+router bgp 65023
+ bgp confederation identifier 123
+ bgp confederation peers 65001    # บอกว่า 65001 เป็น confederation peer</div>
+        <div class="path-flow">
+            <p>เมื่อส่ง prefix ระหว่าง confederation:</p>
+            <p>AS_PATH = (65023) 45  # เครื่องหมายวงเล็บแสดงว่าเป็น confederation sub-AS</p>
+            <p>Router จะเก็บ path นี้ไว้</p>
+            <p>เมื่อส่งต่อออกไปนอก AS 123 จะเห็นเป็น: AS_PATH = 123 45</p>
+        </div>
+
+        <h3>กรณีที่ 2: ไม่ได้กำหนด confederation peers</h3>
+        <div class="code-block">
+router bgp 65023
+ bgp confederation identifier 123
+ # ไม่มี bgp confederation peers 65001</div>
+        <div class="path-flow">
+            <p>เมื่อส่ง prefix ระหว่าง sub-AS:</p>
+            <p>Router จะมองว่าเป็น normal eBGP peer</p>
+            <p>AS_PATH จะถูกลบทิ้งเพราะคิดว่าเป็น normal eBGP</p>
+            <p>ทำให้ได้รับ path ที่ไม่ถูกต้อง</p>
+            <p>และเมื่อส่งออกไปนอก AS จะไม่มีข้อมูล path ที่ถูกต้อง</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>สรุป</h2>
+        <p>การใช้ confederation ช่วยลดจำนวน iBGP peer connections และทำให้ network มี scalability ดีขึ้น โดยที่ AS ภายนอกยังมองเห็นเป็น single AS</p>
+    </div>
+</body>
+</html>

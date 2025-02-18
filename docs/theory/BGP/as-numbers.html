@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AS Numbers Overview</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #475569;
+            --accent: #0ea5e9;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', system-ui, -apple-system, sans-serif;
+            background: var(--background);
+            color: var(--secondary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .range-box {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+
+        .feature-list {
+            margin-top: 1rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+        }
+
+        .info-section {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+
+        .warning {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+        }
+
+        .icon {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AS Numbers Overview</h1>
+            <p>ทำความเข้าใจเกี่ยวกับ Autonomous System Numbers และการใช้งาน</p>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>
+                    <i data-lucide="lock" class="icon"></i>
+                    Private AS Range
+                </h2>
+                <div class="range-box">
+                    16-bit: 64512-65534<br>
+                    32-bit: 4200000000-4294967294
+                </div>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <i data-lucide="check-circle" class="icon"></i>
+                        ใช้ภายในองค์กรเท่านั้น
+                    </div>
+                    <div class="feature-item">
+                        <i data-lucide="check-circle" class="icon"></i>
+                        ไม่สามารถประกาศบนอินเทอร์เน็ต
+                    </div>
+                    <div class="feature-item">
+                        <i data-lucide="check-circle" class="icon"></i>
+                        ใช้ใน BGP Confederation
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <i data-lucide="globe" class="icon"></i>
+                    Public AS Range
+                </h2>
+                <div class="range-box">
+                    16-bit: 1-64495<br>
+                    32-bit: 131072-4199999999
+                </div>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <i data-lucide="check-circle" class="icon"></i>
+                        ต้องลงทะเบียนกับ Internet Registry
+                    </div>
+                    <div class="feature-item">
+                        <i data-lucide="check-circle" class="icon"></i>
+                        ใช้เชื่อมต่อกับอินเทอร์เน็ต
+                    </div>
+                    <div class="feature-item">
+                        <i data-lucide="check-circle" class="icon"></i>
+                        ประกาศบนอินเทอร์เน็ตได้
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <i data-lucide="shield" class="icon"></i>
+                    Reserved AS Numbers
+                </h2>
+                <div class="range-box">
+                    0, 65535: Reserved<br>
+                    64496-64511: Documentation<br>
+                    23456: AS_TRANS
+                </div>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <i data-lucide="info" class="icon"></i>
+                        ใช้สำหรับเอกสารและการทดสอบ
+                    </div>
+                    <div class="feature-item">
+                        <i data-lucide="info" class="icon"></i>
+                        AS_TRANS ใช้สำหรับ 16-bit to 32-bit transition
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>
+                <i data-lucide="lightbulb" class="icon"></i>
+                การใช้งาน Private AS Numbers
+            </h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <i data-lucide="network" class="icon"></i>
+                    ใช้ในเครือข่ายภายในองค์กร
+                </div>
+                <div class="feature-item">
+                    <i data-lucide="git-merge" class="icon"></i>
+                    เหมาะสำหรับ BGP Confederation
+                </div>
+                <div class="feature-item">
+                    <i data-lucide="filter" class="icon"></i>
+                    ต้องทำ AS number stripping เมื่อเชื่อมต่อกับ Public Internet
+                </div>
+            </div>
+            <div class="warning">
+                <strong>หมายเหตุ:</strong> เมื่อใช้ Private AS Numbers ต้องระวังไม่ให้หลุดไปประกาศบน Public Internet
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

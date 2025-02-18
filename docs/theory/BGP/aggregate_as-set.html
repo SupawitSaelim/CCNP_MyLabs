@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>BGP Path Control และ Route Aggregation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #16a085;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            display: block;
+            margin: 10px 0;
+            border-left: 4px solid #3498db;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+        }
+        .comment {
+            color: #27ae60;
+        }
+        .keyword {
+            color: #e74c3c;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .step {
+            background-color: #e8f4f8;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BGP Path Control และ Route Aggregation</h1>
+
+        <h2>Basic BGP Concepts ที่สำคัญ</h2>
+
+        <h3>BGP Peering ด้วย Physical Interface</h3>
+        <p>การทำ BGP peering โดยใช้ physical interface จะใช้ IP address ของ interface นั้นๆ โดยตรงในการสร้าง neighbor relationship</p>
+        <code>router bgp 1
+bgp router-id 1.1.1.1
+neighbor 10.0.12.2 remote-as 2 
+<span class="comment">! ใช้ IP ของ interface Serial1/1 ในการ peer กับ R2</span></code>
+
+        <div class="note">
+            เมื่อ peer สำเร็จ routers จะแลกเปลี่ยน routes ระหว่างกันตาม BGP update rules
+        </div>
+
+        <h2>Route Filtering & BGP Path Control Keywords</h2>
+
+        <h3>prefix-list</h3>
+        <p>ใช้สำหรับกรอง networks ที่จะประกาศหรือรับจาก neighbors โดยสามารถระบุ:</p>
+        <ul>
+            <li>sequence number เพื่อลำดับการ match</li>
+            <li>permit/deny action</li>
+            <li>network prefix และ mask</li>
+            <li>le (less than or equal) / ge (greater than or equal) เพื่อระบุ prefix length</li>
+        </ul>
+
+        <div class="step">
+            <h4>ตัวอย่าง:</h4>
+            <code>ip prefix-list FILTER seq 1 deny 192.0.0.1/32
+ip prefix-list FILTER seq 2 deny 192.0.1.1/32  
+ip prefix-list FILTER seq 3 permit 0.0.0.0/0 le 32
+<span class="comment">! seq 3 อนุญาตให้ networks อื่นๆ ทั้งหมดผ่านได้</span>
+
+router bgp 1
+neighbor 10.0.13.6 prefix-list FILTER out
+<span class="comment">! นำ prefix-list ไปใช้กับ outbound updates ไปยัง neighbor 10.0.13.6</span></code>
+        </div>
+
+        <h3>aggregate-address</h3>
+        <p>ใช้รวม multiple prefixes เข้าด้วยกันเป็น single route เพื่อลดขนาดของ routing table</p>
+        
+        <div class="note">
+            <strong>Parameters สำคัญ:</strong>
+            <ul>
+                <li>summary-only: ประกาศเฉพาะ aggregate route ไม่ประกาศ specific routes</li>
+                <li>as-set: เก็บข้อมูล AS_PATH ของ original routes ไว้เพื่อป้องกัน routing loops</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h4>ตัวอย่าง:</h4>
+            <code>router bgp 2
+aggregate-address 192.0.0.0 255.255.254.0 summary-only as-set
+<span class="comment">! รวม 192.0.0.1/32 และ 192.0.1.1/32 เป็น single route
+! summary-only จะไม่ประกาศ specific routes
+! as-set เก็บข้อมูล AS_PATH ไว้เพื่อป้องกัน loops</span></code>
+        </div>
+
+        <h2>ตัวอย่างการ Configure จาก Lab Topology</h2>
+
+        <h3>Step 1: Route Filtering บน R1</h3>
+        <p>เพื่อให้ R1 ประกาศ prefixes เฉพาะไปยัง R2:</p>
+        <code>! R1 Configuration
+ip prefix-list FILTER seq 1 deny 192.0.0.1/32    
+<span class="comment">! ห้ามประกาศ 192.0.0.1/32 ไปยัง R3</span>
+ip prefix-list FILTER seq 2 deny 192.0.1.1/32    
+<span class="comment">! ห้ามประกาศ 192.0.1.1/32 ไปยัง R3</span>
+ip prefix-list FILTER seq 3 permit 0.0.0.0/0 le 32  
+<span class="comment">! อนุญาต networks อื่นๆ</span>
+
+router bgp 1
+network 192.0.0.1 mask 255.255.255.255  
+network 192.0.1.1 mask 255.255.255.255
+neighbor 10.0.13.6 prefix-list FILTER out  
+<span class="comment">! ใช้ filter กับ updates ที่ส่งไป R3</span></code>
+
+        <h3>Step 2: Route Aggregation บน R2</h3>
+        <p>เพื่อรวม routes และป้องกัน routing loops:</p>
+        <code>router bgp 2
+aggregate-address 192.0.0.0 255.255.254.0 summary-only as-set
+<span class="comment">! รวม 192.0.0.1/32 และ 192.0.1.1/32 
+! summary-only - ประกาศเฉพาะ aggregate route
+! as-set - เก็บ AS_PATH information เพื่อป้องกัน loops</span></code>
+
+        <h2>การทำงานของ Route Aggregation</h2>
+        <ol>
+            <li>R1 ประกาศ 192.0.0.1/32 และ 192.0.1.1/32 ไปยัง R2 เท่านั้น (ใช้ prefix-list)</li>
+            <li>R2 รวม routes เป็น 192.0.0.0/23 และประกาศไปยัง R3</li>
+            <li>R3 ได้รับเฉพาะ aggregate route</li>
+            <li>การใช้ as-set ทำให้ R1 เห็น AS_PATH ของตัวเองและ drop route ตาม BGP loop prevention</li>
+        </ol>
+
+        <div class="warning">
+            <strong>ข้อควรระวัง:</strong>
+            <ul>
+                <li>ถ้าไม่ใช้ as-set อาจเกิด routing loops เพราะ aggregate route จะมี AS_PATH เริ่มต้นจาก AS ที่ทำ aggregation</li>
+                <li>ต้องระวังการใช้ summary-only เพราะจะไม่ประกาศ specific routes</li>
+                <li>prefix-list sequence number สำคัญมาก ต้องเรียงลำดับให้ถูกต้อง</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
