@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            font-weight: 300;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .message-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+        }
+        .debug-output {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .step-number {
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: 500;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .important-note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .state-change {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+        .pre-check {
+            background-color: #e8f4fc;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>กระบวนการทำงานของ IKE Phase 1 (Main Mode)</h1>
+
+        <div class="pre-check">
+            <h2>การตรวจสอบก่อนเริ่ม IKE</h2>
+            <p>ก่อนที่จะส่ง IKE packets ไปยัง peer router จะทำการตรวจสอบว่ามี local SA (Security Association) ที่ตรงกับ traffic นั้นหรือไม่ การตรวจสอบนี้จะเป็นการตรวจสอบกับ IPSec SA ไม่ใช่ IKE SA</p>
+            <div class="debug-output">
+IPSEC(sa_request): ,
+(key eng. msg.) OUTBOUND local= 12.1.1.1:500, remote= 12.1.1.2:500,
+local_proxy= 1.1.1.1/255.255.255.255/0/0 (type=1),
+remote_proxy= 2.2.2.2/255.255.255.255/0/0 (type=1),
+protocol= ESP, transform= esp-3des esp-md5-hmac (Tunnel),
+lifedur= 3600s and 4608000kb,
+spi= 0x0(0), conn_id= 0, keysize= 0, flags= 0x0
+            </div>
+        </div>
+
+        <div class="message-box">
+            <span class="step-number">Message 1</span>
+            <h2>เริ่มต้น Main Mode</h2>
+            <p>Router เริ่มต้นด้วย Main Mode โดยจะส่ง ISAKMP policy ที่กำหนดไว้ไปยัง peer และตรวจสอบ pre-shared key</p>
+            <div class="important-note">
+                Router จะใช้ Main Mode เป็นค่าเริ่มต้น ซึ่งจะมีการแลกเปลี่ยนข้อมูลทั้งหมด 6 messages
+            </div>
+            <div class="debug-output">
+ISAKMP:(0):found peer pre-shared key matching 12.1.1.2
+ISAKMP:(0): beginning Main Mode exchange
+ISAKMP:(0): sending packet to 12.1.1.2 my_port 500 peer_port 500 (I) MM_NO_STATE
+            </div>
+        </div>
+
+        <div class="message-box">
+            <span class="step-number">Message 2</span>
+            <h2>การตอบกลับจาก Peer</h2>
+            <p>Peer ส่ง SA ที่เลือกกลับมาพร้อมข้อมูล vendor IDs สำหรับ NAT-Traversal และ keepalives</p>
+            <div class="debug-output">
+ISAKMP:(0): processing SA payload. message ID = 0
+ISAKMP:(0):atts are acceptable. Next payload is 0
+            </div>
+        </div>
+
+        <div class="message-box">
+            <span class="step-number">Message 3</span>
+            <h2>การแลกเปลี่ยน Key</h2>
+            <p>ส่งข้อมูล Key Exchange (KE) สำหรับกระบวนการ Diffie-Hellman</p>
+            <div class="debug-output">
+ISAKMP:(0): sending packet to 12.1.1.2 my_port 500 peer_port 500 (I) MM_SA_SETUP
+            </div>
+        </div>
+
+        <div class="message-box">
+            <span class="step-number">Message 4</span>
+            <h2>การรับ Key และตรวจสอบ NAT</h2>
+            <p>Peer ส่ง KE payload กลับมา ทั้งสองฝ่ายสามารถสร้าง session key ร่วมกันได้ และมีการตรวจสอบว่ามี NAT อยู่ในเส้นทางหรือไม่</p>
+            <div class="debug-output">
+ISAKMP (1002): No NAT Found for self or peer
+            </div>
+        </div>
+
+        <div class="message-box">
+            <span class="step-number">Message 5</span>
+            <h2>การส่งข้อมูลการพิสูจน์ตัวตน</h2>
+            <p>ส่งข้อมูลการพิสูจน์ตัวตนภายใต้การป้องกันของ shared secret</p>
+            <div class="debug-output">
+ISAKMP:(1002):SA is doing pre-shared key authentication using id type ID_IPV4_ADDR
+            </div>
+        </div>
+
+        <div class="message-box">
+            <span class="step-number">Message 6</span>
+            <h2>การยืนยันตัวตนและสิ้นสุด Phase 1</h2>
+            <p>ตรวจสอบยืนยันตัวตนของ peer และสร้าง SA สำเร็จ จบกระบวนการ Main Mode</p>
+            <div class="debug-output">
+ISAKMP:(1002):SA authentication status:
+authenticated
+ISAKMP:(1002):SA has been authenticated with 12.1.1.2
+ISAKMP:(1002):Old State = IKE_I_MM6 New State = IKE_P1_COMPLETE
+            </div>
+        </div>
+
+        <div class="important-note">
+            <h2>หมายเหตุสำคัญ</h2>
+            <ul>
+                <li>Main Mode ใช้การแลกเปลี่ยนข้อมูล 6 messages เพื่อความปลอดภัยสูงสุด</li>
+                <li>ค่า lifetime เริ่มต้นของ ISAKMP SA คือ 86,400 วินาที</li>
+                <li>IPSec SA จะมีค่า lifetime แยกต่างหาก</li>
+                <li>การตรวจสอบ NAT เป็นส่วนสำคัญของกระบวนการ</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

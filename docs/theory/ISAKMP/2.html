@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            font-weight: 300;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 25px;
+            font-weight: 500;
+        }
+        .info-box {
+            background-color: #e8f4fc;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .dh-group {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .dh-group:hover {
+            background-color: #f8f9fa;
+        }
+        .dh-number {
+            font-weight: 500;
+            color: #2980b9;
+            min-width: 40px;
+        }
+        .rfc-box {
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+            margin: 15px 0;
+        }
+        .method-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .method-list li {
+            padding: 8px 0;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IKE และ Diffie-Hellman Groups</h1>
+
+        <div class="info-box">
+            <h2>เกี่ยวกับ IKE</h2>
+            <p>IKE ไม่ได้กำหนดรายละเอียดของการจัดการคีย์หรือการแลกเปลี่ยนคีย์ และไม่ได้ผูกติดกับเทคนิคการสร้างคีย์ใดๆ ภายใน IKE Cisco ใช้ OAKLEY เป็นโปรโตคอลสำหรับการแลกเปลี่ยนคีย์ OAKLEY ทำให้สามารถเลือกใช้ Diffie-Hellman (DH) groups ต่างๆ ได้</p>
+        </div>
+
+        <div class="rfc-box">
+            <h2>RFC ที่เกี่ยวข้อง</h2>
+            <p><strong>RFC 2412:</strong> อธิบาย OAKLEY protocol และ DH groups 1-5 (Cisco รองรับ groups 1, 2, และ 5)</p>
+            <p><strong>RFC 3526:</strong> อธิบาย DH group 5 และ groups 14-18 (Cisco รองรับ groups 5, 14, 15, และ 16)</p>
+            <p><strong>RFC 5114:</strong> ครอบคลุม DH groups 19-26 (Cisco รองรับ groups 19, 20, 21, และ 24)</p>
+        </div>
+
+        <h2>Diffie-Hellman Groups ที่ Cisco รองรับ</h2>
+        <div class="info-box">
+            <div class="dh-group">
+                <span class="dh-number">1:</span>
+                <span>Diffie-Hellman group 1 (768 bit)</span>
+            </div>
+            <div class="dh-group">
+                <span class="dh-number">2:</span>
+                <span>Diffie-Hellman group 2 (1024 bit)</span>
+            </div>
+            <div class="dh-group">
+                <span class="dh-number">5:</span>
+                <span>Diffie-Hellman group 5 (1536 bit)</span>
+            </div>
+            <div class="dh-group">
+                <span class="dh-number">14:</span>
+                <span>Diffie-Hellman group 14 (2048 bit)</span>
+            </div>
+            <div class="dh-group">
+                <span class="dh-number">15:</span>
+                <span>Diffie-Hellman group 15 (3072 bit)</span>
+            </div>
+            <div class="dh-group">
+                <span class="dh-number">16:</span>
+                <span>Diffie-Hellman group 16 (4096 bit)</span>
+            </div>
+            <div class="dh-group">
+                <span class="dh-number">19:</span>
+                <span>Diffie-Hellman group 19 (256-bit ECP)</span>
+            </div>
+            <div class="dh-group">
+                <span class="dh-number">20:</span>
+                <span>Diffie-Hellman group 20 (384-bit ECP)</span>
+            </div>
+            <div class="dh-group">
+                <span class="dh-number">21:</span>
+                <span>Diffie-Hellman group 21 (521-bit ECP)</span>
+            </div>
+            <div class="dh-group">
+                <span class="dh-number">24:</span>
+                <span>Diffie-Hellman group 24 (2048 bit, 256-bit subgroup)</span>
+            </div>
+        </div>
+
+        <h2>การทำงานร่วมกันของ ISAKMP และ OAKLEY</h2>
+        <p>ISAKMP และ OAKLEY สร้างอุโมงค์ที่ปลอดภัยและได้รับการพิสูจน์ตัวตนระหว่างสองเอนทิตี และจากนั้นจะเจรจา SA สำหรับ IPSec โดยทั้งสองฝ่ายต้องพิสูจน์ตัวตนซึ่งกันและกันและสร้างคีย์ที่ใช้ร่วมกัน</p>
+
+        <h2>วิธีการพิสูจน์ตัวตน</h2>
+        <ul class="method-list">
+            <li>🔑 RSA signatures (PKI)</li>
+            <li>🔐 RSA encrypted pseudorandom numbers (nonces)</li>
+            <li>🗝️ Preshared keys (PSK)</li>
+        </ul>
+
+        <div class="info-box">
+            <h2>Perfect Forward Secrecy (PFS)</h2>
+            <p>IPSec ใช้คีย์ที่แชร์กันแตกต่างจาก ISAKMP และ OAKLEY คีย์ที่แชร์กันของ IPSec สามารถสร้างได้โดย:</p>
+            <ul>
+                <li>ใช้ DH อีกครั้งเพื่อให้มั่นใจใน Perfect Forward Secrecy (PFS)</li>
+                <li>รีเฟรชความลับที่แชร์กันซึ่งได้มาจากการแลกเปลี่ยน DH ครั้งแรก</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

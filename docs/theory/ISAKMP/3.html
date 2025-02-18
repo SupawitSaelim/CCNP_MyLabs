@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .phase-box {
+            background-color: #e8f4fc;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .router-label {
+            color: #e74c3c;
+            font-weight: 500;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .config-box {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .output-box {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .step {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>การกำหนดค่า IKE และ IPSec</h1>
+
+        <div class="phase-box">
+            <h2>ความเข้าใจพื้นฐาน</h2>
+            <p>IKE เป็นโปรโตคอลแบบไฮบริดที่สร้างนโยบายความปลอดภัยและคีย์ที่ได้รับการพิสูจน์ตัวตนสำหรับบริการที่ต้องการคีย์ เช่น IPSec ก่อนที่อุโมงค์ IPSec จะถูกสร้างขึ้น อุปกรณ์แต่ละตัวต้องสามารถระบุตัวตนของคู่เชื่อมต่อได้</p>
+            
+            <h3>เฟสของ IKE:</h3>
+            <ul>
+                <li><strong>IKE Phase 1:</strong> การสร้างช่องทางที่ปลอดภัยและได้รับการพิสูจน์ตัวตนระหว่าง ISAKMP peers (ISAKMP SA)</li>
+                <li><strong>IKE Phase 2:</strong> การเจรจา SAs สำหรับบริการที่ต้องการ keying material (Quick Mode)</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h2>1. การกำหนดค่า IKE Phase 1</h2>
+            
+            <div class="router-label">บน Router R1:</div>
+            <div class="config-box">R1(config)# crypto isakmp policy 10
+R1(config-isakmp)# hash md5
+R1(config-isakmp)# authentication pre-share
+R1(config-isakmp)# group 2
+R1(config-isakmp)# encryption 3des
+R1(config-isakmp)# exit
+R1(config)# crypto isakmp key cisco address 12.1.1.2</div>
+
+            <div class="router-label">บน Router R2:</div>
+            <div class="config-box">R2(config)# crypto isakmp policy 10
+R2(config-isakmp)# hash md5
+R2(config-isakmp)# authentication pre-share
+R2(config-isakmp)# group 2
+R2(config-isakmp)# encryption 3des
+R2(config-isakmp)# exit
+R2(config)# crypto isakmp key cisco address 12.1.1.1</div>
+        </div>
+
+        <div class="step">
+            <h2>2. การกำหนดค่า Phase 2</h2>
+            
+            <div class="router-label">บนทั้งสอง Routers:</div>
+            <div class="config-box">Rx(config)# crypto ipsec transform-set TSET esp-3des esp-md5-hmac
+Rx(cfg-config-trans)# exit</div>
+
+            <h3>กำหนด Crypto ACL/Proxy ID:</h3>
+            
+            <div class="router-label">บน R1:</div>
+            <div class="config-box">R1(config)# access-list 100 permit ip host 1.1.1.1 host 2.2.2.2</div>
+
+            <div class="router-label">บน R2:</div>
+            <div class="config-box">R2(config)# access-list 100 permit ip host 2.2.2.2 host 1.1.1.1</div>
+        </div>
+
+        <div class="step">
+            <h2>3. การกำหนดค่า Crypto Map</h2>
+            
+            <div class="note">
+                <strong>ตัวเลือกในการกำหนดค่า Crypto Map:</strong>
+                <ul>
+                    <li><strong>IPSec-ISAKMP:</strong> ตัวเลือกที่ดีที่สุด ใช้ ISAKMP ในการเข้าและถอดรหัสคีย์</li>
+                    <li><strong>IPSec-manual:</strong> ตัวเลือกที่แย่ที่สุด ต้องป้อนคีย์ด้วยตนเอง</li>
+                    <li><strong>GDOI:</strong> ใช้สำหรับการกำหนดค่า GETVPN</li>
+                </ul>
+            </div>
+
+            <div class="router-label">บน R1:</div>
+            <div class="config-box">R1(config)# crypto map TST 10 ipsec-isakmp
+R1(config-crypto-map)# set peer 12.1.1.2
+R1(config-crypto-map)# match address 100
+R1(config-crypto-map)# set transform-set TSET
+R1(config-crypto-map)# exit</div>
+
+            <div class="router-label">บน R2:</div>
+            <div class="config-box">R2(config)# crypto map TST 10 ipsec-isakmp
+R2(config-crypto-map)# set peer 12.1.1.1
+R2(config-crypto-map)# match address 100
+R2(config-crypto-map)# set transform-set TSET
+R2(config-crypto-map)# exit</div>
+        </div>
+
+        <div class="step">
+            <h2>4. การนำ Crypto Map ไปใช้กับ Interface</h2>
+            
+            <div class="router-label">บน R1:</div>
+            <div class="config-box">R1(config)# interface Serial 1/2
+R1(config-if)# crypto map TST</div>
+
+            <div class="router-label">บน R2:</div>
+            <div class="config-box">R2(config)# interface Serial 1/1
+R2(config-if)# crypto map TST</div>
+        </div>
+
+        <div class="step">
+            <h2>5. การตรวจสอบการกำหนดค่า</h2>
+            
+            <div class="router-label">คำสั่งตรวจสอบ:</div>
+            <div class="config-box">R1# show crypto isakmp policy
+R1# show crypto isakmp key
+R1# debug crypto isakmp
+R1# debug crypto ipsec</div>
+
+            <div class="output-box">Global IKE policy
+Protection suite of priority 10
+encryption algorithm: Three key triple DES
+hash algorithm: Message Digest 5
+authentication method: Pre-Shared Key
+Diffie-Hellman group: # 2 (1024 bit)
+lifetime: 86400 seconds, no volume limit</div>
+        </div>
+
+        <div class="step">
+            <h2>6. การทดสอบการเชื่อมต่อ</h2>
+            <div class="config-box">R1# ping 2.2.2.2 source loopback0</div>
+            <p>แพ็คเก็ต ICMP แรกจะเริ่มกระบวนการ ISAKMP เนื่องจากเป็น interesting traffic ที่ตรงกับ crypto ACL ที่กำหนดไว้</p>
+        </div>
+    </div>
+</body>
+</html>
