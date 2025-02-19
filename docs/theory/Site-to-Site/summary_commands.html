@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สรุปคำสั่งในการกำหนดค่าและตรวจสอบ Site-to-Site VPN</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #1a5276 0%, #2980b9 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .icon-container {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 35px;
+            border: 1px solid #e0e6ed;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background-color: #f0f7fa;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #e0e6ed;
+        }
+        
+        .section-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            background-color: #2980b9;
+            color: white;
+            border-radius: 50%;
+            font-weight: 600;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        .section-body {
+            padding: 20px;
+        }
+        
+        .command-block {
+            background-color: #2c3e50;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .command-block pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            color: #f5f5f5;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .comment {
+            color: #6ab0de;
+            margin-bottom: 5px;
+            font-style: italic;
+        }
+        
+        .parameter {
+            color: #f1c40f;
+        }
+        
+        .keyword {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        .note {
+            background-color: #f8f4e5;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        
+        .note-title {
+            color: #d35400;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .verification-section {
+            background-color: #eaf7f0;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #caeade;
+            margin-top: 40px;
+        }
+        
+        .verification-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px dashed #caeade;
+            padding-bottom: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+            background-color: #f8f9fa;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-active {
+            background-color: #2ecc71;
+        }
+        
+        .status-inactive {
+            background-color: #e74c3c;
+        }
+        
+        .status-text {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .status-active-text {
+            color: #27ae60;
+        }
+        
+        .status-inactive-text {
+            color: #c0392b;
+        }
+        
+        .syntax-note {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="icon-container">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 8V16M8 12H16M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h1>คำสั่งในการกำหนดค่าและตรวจสอบ Site-to-Site VPN</h1>
+            <p>รวบรวมคำสั่งทั้งหมดที่จำเป็นต้องใช้ในการกำหนดค่าและตรวจสอบ Site-to-Site VPN โดยใช้ Crypto Map</p>
+        </header>
+        
+        <div class="content">
+            <!-- Section 1: ISAKMP Configuration -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">1</div>
+                    <div class="section-title">กำหนดค่า ISAKMP (IKE Phase 1)</div>
+                </div>
+                <div class="section-body">
+                    <div class="command-block">
+                        <pre><span class="comment"># เปิดใช้งาน IKE</span>
+<span class="keyword">crypto isakmp enable</span>
+
+<span class="comment"># สร้างนโยบาย IKE</span>
+<span class="keyword">crypto isakmp policy</span> <span class="parameter">10</span>
+ <span class="keyword">encryption</span> <span class="parameter">aes 256</span>
+ <span class="keyword">hash</span> <span class="parameter">sha256</span>
+ <span class="keyword">authentication</span> <span class="parameter">pre-share</span>
+ <span class="keyword">group</span> <span class="parameter">14</span>
+ <span class="keyword">lifetime</span> <span class="parameter">3600</span></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 2: Pre-shared Keys -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">2</div>
+                    <div class="section-title">กำหนดค่า Pre-shared Keys</div>
+                </div>
+                <div class="section-body">
+                    <div class="command-block">
+                        <pre><span class="comment"># กำหนด pre-shared key สำหรับ peer โดยระบุ IP ปลายทาง</span>
+<span class="keyword">crypto isakmp key</span> <span class="parameter">cisco123</span> <span class="keyword">address</span> <span class="parameter">64.100.1.2</span></pre>
+                    </div>
+                    <div class="note">
+                        <span class="note-title">หมายเหตุ:</span>
+                        <p>ในสภาพแวดล้อมการผลิตจริง ควรใช้คีย์ที่มีความซับซ้อนและยาวกว่าตัวอย่าง</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 3: IPsec Transform Set -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">3</div>
+                    <div class="section-title">กำหนดค่า IPsec Transform Set และ Lifetime</div>
+                </div>
+                <div class="section-body">
+                    <div class="command-block">
+                        <pre><span class="comment"># สร้าง transform set สำหรับเข้ารหัสและพิสูจน์ตัวตน</span>
+<span class="keyword">crypto ipsec transform-set</span> <span class="parameter">S2S-VPN</span> <span class="keyword">esp-aes</span> <span class="parameter">256</span> <span class="keyword">esp-sha256-hmac</span>
+
+<span class="comment"># กำหนดอายุการใช้งานความสัมพันธ์ด้านความปลอดภัย IPsec</span>
+<span class="keyword">crypto ipsec security-association lifetime seconds</span> <span class="parameter">1800</span></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 4: Interesting Traffic -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">4</div>
+                    <div class="section-title">กำหนด Interesting Traffic (ACL)</div>
+                </div>
+                <div class="section-body">
+                    <div class="command-block">
+                        <pre><span class="comment"># สร้าง access list สำหรับระบุทราฟฟิกที่ต้องการเข้ารหัส</span>
+<span class="keyword">ip access-list extended</span> <span class="parameter">S2S-VPN-ACL</span>
+ <span class="keyword">permit ip</span> <span class="parameter">10.10.0.0 0.0.3.255 10.10.4.0 0.0.3.255</span>
+ <span class="keyword">permit ip</span> <span class="parameter">10.10.0.0 0.0.3.255 10.10.16.0 0.0.7.255</span></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 5: Crypto Map -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">5</div>
+                    <div class="section-title">สร้างและใช้งาน Crypto Map</div>
+                </div>
+                <div class="section-body">
+                    <div class="command-block">
+                        <pre><span class="comment"># สร้าง crypto map</span>
+<span class="keyword">crypto map</span> <span class="parameter">S2S-CMAP</span> <span class="parameter">10</span> <span class="keyword">ipsec-isakmp</span>
+ <span class="keyword">match address</span> <span class="parameter">S2S-VPN-ACL</span>
+ <span class="keyword">set peer</span> <span class="parameter">64.100.1.2</span>
+ <span class="keyword">set pfs</span> <span class="parameter">group14</span>
+ <span class="keyword">set transform-set</span> <span class="parameter">S2S-VPN</span>
+ <span class="keyword">set security-association lifetime seconds</span> <span class="parameter">900</span></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 6: Apply Crypto Map -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">6</div>
+                    <div class="section-title">นำ Crypto Map ไปใช้กับอินเทอร์เฟซ</div>
+                </div>
+                <div class="section-body">
+                    <div class="command-block">
+                        <pre><span class="comment"># กำหนด crypto map กับอินเทอร์เฟซที่หันไปทาง peer</span>
+<span class="keyword">interface</span> <span class="parameter">GigabitEthernet0/0/0</span>
+ <span class="keyword">crypto map</span> <span class="parameter">S2S-CMAP</span></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Verification Section -->
+            <div class="verification-section">
+                <div class="verification-title">คำสั่งตรวจสอบการเชื่อมต่อ VPN</div>
+                
+                <div class="command-block">
+                    <pre><span class="comment"># ตรวจสอบนโยบาย ISAKMP</span>
+<span class="keyword">show crypto isakmp policy</span>
+
+<span class="comment"># ตรวจสอบ transform set ที่กำหนดค่าไว้</span>
+<span class="keyword">show crypto ipsec transform-set</span> <span class="parameter">S2S-VPN</span>
+
+<span class="comment"># ตรวจสอบ crypto map ที่นำไปใช้กับเราเตอร์</span>
+<span class="keyword">show crypto map</span>
+
+<span class="comment"># ตรวจสอบความสัมพันธ์ด้านความปลอดภัย ISAKMP</span>
+<span class="keyword">show crypto isakmp sa</span>
+<span class="comment"># ตัวอย่างเอาต์พุตเมื่อเชื่อมต่อสำเร็จ:</span>
+<span class="comment"># dst             src             state          conn-id status</span>
+<span class="comment"># 64.100.1.2      64.100.0.2      QM_IDLE        1001    <span class="status-active-text">ACTIVE</span></span>
+
+<span class="comment"># ตรวจสอบความสัมพันธ์ด้านความปลอดภัย IPsec</span>
+<span class="keyword">show crypto ipsec sa</span>
+<span class="comment"># ดูค่า pkts encaps, pkts encrypt เพื่อยืนยันว่ามีการส่งแพ็กเก็ตผ่านอุโมงค์</span>
+
+<span class="comment"># สร้างทราฟฟิกที่น่าสนใจเพื่อกระตุ้นการสร้างอุโมงค์</span>
+<span class="keyword">ping</span> <span class="parameter">10.10.16.1 source g0/0/1</span></pre>
+                </div>
+                
+                <div class="status-indicators">
+                    <p><span class="status-indicator status-active"></span><span class="status-text status-active-text">ACTIVE</span> - อุโมงค์เชื่อมต่อและทำงานอยู่</p>
+                    <p><span class="status-indicator status-inactive"></span><span class="status-text status-inactive-text">INACTIVE</span> - ยังไม่มีการสร้างอุโมงค์</p>
+                </div>
+                
+                <div class="syntax-note">
+                    หมายเหตุ: คำสั่ง ping แบบระบุแหล่งที่มา (source) ใช้เพื่อสร้างทราฟฟิกที่ตรงกับเงื่อนไขใน ACL เพื่อกระตุ้นการเริ่มต้นอุโมงค์ VPN
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            &copy; 2023 คู่มือการกำหนดค่า Site-to-Site VPN | คำสั่งทั้งหมดใช้กับอุปกรณ์ Cisco IOS
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ส่วนที่ 3: การตรวจสอบ Site-to-Site VPN</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2e4053;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 15px;
+        }
+
+        h2 {
+            color: #2980b9;
+            font-size: 22px;
+            margin-top: 25px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+
+        h3 {
+            color: #1a5276;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        .theory-box {
+            background-color: #eaf2f8;
+            padding: 20px;
+            border-left: 5px solid #3498db;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .command {
+            font-family: 'Courier New', monospace;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .command-prompt {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .command-input {
+            color: #2ecc71;
+        }
+
+        .command-output {
+            color: #f5f5f5;
+        }
+
+        .highlight-output {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f7fb;
+        }
+
+        .note {
+            background-color: #fff7e6;
+            border-left: 5px solid #f39c12;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .important {
+            background-color: #fdedec;
+            border-left: 5px solid #e74c3c;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .highlight {
+            background-color: #fef9e7;
+            padding: 3px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .steps {
+            counter-reset: step-counter;
+            margin-left: 0;
+            padding-left: 0;
+        }
+
+        .step {
+            list-style-type: none;
+            margin-bottom: 22px;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        .step:before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+        }
+
+        .question-answer {
+            background-color: #e8f8f5;
+            border-left: 5px solid #1abc9c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .question {
+            font-weight: bold;
+            color: #16a085;
+        }
+
+        .answer {
+            margin-top: 10px;
+        }
+
+        .ping-result {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-active {
+            background-color: #2ecc71;
+        }
+
+        .status-inactive {
+            background-color: #e74c3c;
+        }
+
+        .diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .diagram-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .diagram-content {
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>ส่วนที่ 3: การตรวจสอบ Site-to-Site VPN ระหว่าง R1 และ R3</h1>
+
+        <p>หลังจากกำหนดค่า VPN เสร็จแล้ว จำเป็นต้องทำการทดสอบเพื่อดูว่าทำงานได้ตามที่คาดหวังหรือไม่</p>
+
+        <h2>ขั้นตอนที่ 1: ตรวจสอบการกำหนดค่า Site-to-Site IPsec VPN</h2>
+
+        <p>ก่อนหน้านี้คุณได้ใช้คำสั่ง <code>show crypto isakmp policy</code> เพื่อแสดงนโยบาย ISAKMP
+            ที่กำหนดค่าไว้บนเราเตอร์</p>
+
+        <h3>a. ตรวจสอบ IPsec Transform Set</h3>
+
+        <p>ใช้คำสั่ง <code>show crypto ipsec transform-set [transform-set-name]</code> เพื่อแสดงนโยบาย IPsec
+            ที่กำหนดค่าไว้ในรูปแบบของ transform sets</p>
+
+        <div class="command">
+            <span class="command-prompt">R1#</span> <span class="command-input">show crypto ipsec transform-set
+                S2S-VPN</span><br>
+            <span class="command-output">{ esp-256-aes esp-sha256-hmac }</span><br>
+            <span class="command-output"> will negotiate = { Tunnel, },</span>
+        </div>
+
+        <p>การตั้งค่า transform set S2S-VPN ถูกไฮไลต์ในเอาต์พุต</p>
+
+        <h3>b. ตรวจสอบ Crypto Map</h3>
+
+        <p>บน R1 และ R3 ใช้คำสั่ง <code>show crypto map</code> เพื่อแสดง crypto maps ที่ใช้งานบนเราเตอร์</p>
+
+        <div class="command">
+            <span class="command-prompt">R1#</span> <span class="command-input">show crypto map</span><br>
+            <span class="command-output">Crypto Map IPv4 "S2S-CMAP" 10 ipsec-isakmp</span><br>
+            <span class="command-output"> Peer = 64.100.1.2</span><br>
+            <span class="command-output"> Extended IP access list S2S-VPN-ACL</span><br>
+            <span class="command-output"> access-list S2S-VPN-ACL permit ip 10.10.0.0 0.0.3.255 10.10.4.0
+                0.0.3.255</span><br>
+            <span class="command-output"> access-list S2S-VPN-ACL permit ip 10.10.0.0 0.0.3.255 10.10.16.0
+                0.0.7.255</span><br>
+            <span class="command-output"> Current peer: 64.100.1.2</span><br>
+            <span class="command-output"> Security association lifetime: 4608000 kilobytes/900 seconds</span><br>
+            <span class="command-output"> Responder-Only (Y/N): N</span><br>
+            <span class="command-output"> PFS (Y/N): Y</span><br>
+            <span class="command-output"> DH group: group14</span><br>
+            <span class="command-output"> Mixed-mode : Disabled</span><br>
+            <span class="command-output"> Transform sets={</span><br>
+            <span class="command-output"> S2S-VPN: { esp-256-aes esp-sha256-hmac } ,</span><br>
+            <span class="command-output"> }</span><br>
+            <span class="command-output"> Interfaces using crypto map S2S-CMAP:</span><br>
+            <span class="command-output"> GigabitEthernet0/0/0</span>
+        </div>
+
+        <div class="command">
+            <span class="command-prompt">R3#</span> <span class="command-input">show crypto map</span><br>
+            <span class="command-output">Crypto Map IPv4 "S2S-CMAP" 10 ipsec-isakmp</span><br>
+            <span class="command-output"> Peer = 64.100.0.2</span><br>
+            <span class="command-output"> Extended IP access list S2S-VPN-ACL</span><br>
+            <span class="command-output"> access-list S2S-VPN-ACL permit ip 10.10.4.0 0.0.3.255 10.10.0.0
+                0.0.3.255</span><br>
+            <span class="command-output"> access-list S2S-VPN-ACL permit ip 10.10.16.0 0.0.7.255 10.10.0.0
+                0.0.3.255</span><br>
+            <span class="command-output"> Current peer: 64.100.0.2</span><br>
+            <span class="command-output"> Security association lifetime: 4608000 kilobytes/900 seconds</span><br>
+            <span class="command-output"> Responder-Only (Y/N): N</span><br>
+            <span class="command-output"> PFS (Y/N): Y</span><br>
+            <span class="command-output"> DH group: group14</span><br>
+            <span class="command-output"> Mixed-mode : Disabled</span><br>
+            <span class="command-output"> Transform sets={</span><br>
+            <span class="command-output"> S2S-VPN: { esp-256-aes esp-sha256-hmac } ,</span><br>
+            <span class="command-output"> }</span><br>
+            <span class="command-output"> Interfaces using crypto map S2S-CMAP:</span><br>
+            <span class="command-output"> GigabitEthernet0/0/0</span>
+        </div>
+
+        <div class="note">
+            <p><strong>หมายเหตุ:</strong> เอาต์พุตของคำสั่ง show เหล่านี้ไม่เปลี่ยนแปลงเมื่ออุโมงค์ VPN ถูกเปิดใช้งาน
+            </p>
+        </div>
+
+        <h2>ขั้นตอนที่ 2: แสดงความสัมพันธ์ด้านความปลอดภัย ISAKMP และ IPsec</h2>
+
+        <h3>a. ตรวจสอบ ISAKMP Security Associations</h3>
+
+        <p>คำสั่ง <code>show crypto isakmp sa</code> แสดงให้เห็นว่ายังไม่มี IKE SAs อยู่ เมื่อมีการส่งทราฟฟิกที่น่าสนใจ
+            เอาต์พุตของคำสั่งนี้จะเปลี่ยนไป</p>
+
+        <div class="command">
+            <span class="command-prompt">R1#</span> <span class="command-input">show crypto isakmp sa</span><br>
+            <span class="command-output">IPv4 Crypto ISAKMP SA</span><br>
+            <span class="command-output">dst src state conn-id status</span><br>
+            <span class="command-output">IPv6 Crypto ISAKMP SA</span>
+        </div>
+
+        <h3>b. ตรวจสอบ IPsec Security Associations</h3>
+
+        <p>คำสั่ง <code>show crypto ipsec sa</code> แสดงข้อมูลสถิติแพ็กเก็ตสำหรับแต่ละรายการ ACE ใน VPN ACL
+            ส่วนแรกของเอาต์พุตแสดงสถิติแพ็กเก็ตสำหรับทราฟฟิกจากเครือข่าย 10.10.0.0/22 ของ R1 ไปยังเครือข่าย 10.10.4.0/22
+            ของ R3 ส่วนล่างแสดงสถิติสำหรับทราฟฟิกจากเครือข่าย 10.10.0.0/22 ของ R1 ไปยังเครือข่าย 10.10.16.0/21 ของ R3
+        </p>
+
+        <div class="command">
+            <span class="command-prompt">R1#</span> <span class="command-input">show crypto ipsec sa</span><br>
+            <span class="command-output">interface: GigabitEthernet0/0/0</span><br>
+            <span class="command-output"> Crypto map tag: S2S-CMAP, local addr 64.100.0.2</span><br>
+            <span class="command-output"> protected vrf: (none)</span><br>
+            <span class="command-output"> local ident (addr/mask/prot/port): (10.10.0.0/255.255.252.0/0/0)</span><br>
+            <span class="command-output"> remote ident (addr/mask/prot/port): (10.10.4.0/255.255.252.0/0/0)</span><br>
+            <span class="command-output"> current_peer 64.100.1.2 port 500</span><br>
+            <span class="command-output"> PERMIT, flags={origin_is_acl,}</span><br>
+            <span class="highlight-output"> #pkts encaps: 0, #pkts encrypt: 0, #pkts digest: 0</span><br>
+            <span class="highlight-output"> #pkts decaps: 0, #pkts decrypt: 0, #pkts verify: 0</span><br>
+            <span class="command-output"> #pkts compressed: 0, #pkts decompressed: 0</span><br>
+            <span class="command-output"> #pkts not compressed: 0, #pkts compr. failed: 0</span><br>
+            <span class="command-output"> #pkts not decompressed: 0, #pkts decompress failed: 0</span><br>
+            <span class="command-output"> #send errors 0, #recv errors 0</span><br>
+            <span class="command-output"> local crypto endpt.: 64.100.0.2, remote crypto endpt.: 64.100.1.2</span><br>
+            <span class="command-output"> plaintext mtu 1438, path mtu 1500, ip mtu 1500, ip mtu idb
+                GigabitEthernet0/0/0</span><br>
+            <span class="command-output"> current outbound spi: 0x0(0)</span><br>
+            <span class="command-output"> PFS (Y/N): N, DH group: none</span><br>
+            <span class="command-output"> inbound esp sas:</span><br>
+            <span class="command-output"> inbound ah sas:</span><br>
+            <span class="command-output"> inbound pcp sas:</span><br>
+            <span class="command-output"> outbound esp sas:</span><br>
+            <span class="command-output"> outbound ah sas:</span><br>
+            <span class="command-output"> outbound pcp sas:</span><br>
+            <span class="command-output"> protected vrf: (none)</span><br>
+            <span class="command-output"> local ident (addr/mask/prot/port): (10.10.0.0/255.255.252.0/0/0)</span><br>
+            <span class="command-output"> remote ident (addr/mask/prot/port): (10.10.16.0/255.255.248.0/0/0)</span><br>
+            <span class="command-output"> current_peer 64.100.1.2 port 500</span><br>
+            <span class="command-output"> PERMIT, flags={origin_is_acl,}</span><br>
+            <span class="highlight-output"> #pkts encaps: 0, #pkts encrypt: 0, #pkts digest: 0</span><br>
+            <span class="highlight-output"> #pkts decaps: 0, #pkts decrypt: 0, #pkts verify: 0</span>
+        </div>
+
+        <div class="note">
+            <p><strong>หมายเหตุ:</strong> เอาต์พุตแสดงสถานะปัจจุบันสำหรับแต่ละ ACE ใน S2S-VPN-ACL</p>
+        </div>
+
+        <div class="question-answer">
+            <p class="question">คำถาม: ทำไมจึงยังไม่มีการเจรจา SA ใดๆ?</p>
+            <p class="answer">
+                <strong>คำตอบ:</strong> IPsec ยังไม่ได้เริ่มการเจรจา SA ที่จะใช้เข้ารหัสทราฟฟิก
+                เนื่องจากยังไม่มีการระบุทราฟฟิกที่น่าสนใจ (interesting traffic)
+            </p>
+        </div>
+
+        <h3>c. สร้างทราฟฟิกทดสอบที่ "ไม่น่าสนใจ" (uninteresting) และสังเกตผลลัพธ์</h3>
+
+        <p>จาก R1 ให้ ping ไปยังที่อยู่ IP ของอินเทอร์เฟซ G0/0/0 ของ R3 (64.100.1.2) และจากนั้น ping ไปยังที่อยู่ IP
+            ของอินเทอร์เฟซ G0/0/1 ของ R3 (10.10.4.1) การ ping เหล่านี้ควรสำเร็จ</p>
+
+        <h3>d. ออกคำสั่ง show crypto isakmp sa อีกครั้ง</h3>
+
+        <div class="question-answer">
+            <p class="question">คำถาม: มีการสร้าง SA สำหรับการ ping เหล่านี้หรือไม่? อธิบาย</p>
+            <p class="answer">
+                <strong>คำตอบ:</strong> ไม่ ไม่มีการสร้าง SAs S2S-VPN-ACL ที่เชื่อมโยงกับ crypto map สำหรับ R1
+                กำหนดทราฟฟิกที่น่าสนใจเป็นแพ็กเก็ต IP จาก LAN ของ R1 ไปยัง LAN ของ R3 เหตุผลหลักที่ไม่มีการสร้าง SA
+                คือแหล่งที่มาของทั้งสอง ping คือที่อยู่ G0/0/0 ของ R1 คือ 64.100.0.2 ซึ่งไม่ตรงกับ VPN ACL ดังนั้น ping
+                เหล่านี้จึงไม่ใช่ทราฟฟิกที่ "น่าสนใจ"
+            </p>
+        </div>
+
+        <h2>ขั้นตอนที่ 3: สร้างทราฟฟิกทดสอบที่น่าสนใจและสังเกตผลลัพธ์</h2>
+
+        <div class="theory-box">
+            <p>VPN จะเริ่มต้นเมื่อมีการสร้างทราฟฟิกที่น่าสนใจ โดยทั่วไป
+                ผู้ใช้ภายในที่เชื่อมต่อกับเครือข่ายระยะไกลสามารถเริ่มต้นการเชื่อมต่อ VPN ได้</p>
+        </div>
+
+        <h3>a. จาก PC1 ping PC3 เพื่อสร้างทราฟฟิกที่น่าสนใจ</h3>
+
+        <div class="ping-result">
+            <strong>PC1></strong> ping 10.10.5.10<br>
+            Pinging 10.10.5.10 with 32 bytes of data:<br>
+            Request timed out.<br>
+            Reply from 10.10.5.10: bytes=32 time=1ms TTL=64<br>
+            Reply from 10.10.5.10: bytes=32 time=1ms TTL=64<br>
+            Reply from 10.10.5.10: bytes=32 time=1ms TTL=64<br>
+            <br>
+            Ping statistics for 10.10.5.10:<br>
+            &nbsp;&nbsp;Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),<br>
+            Approximate round trip times in milli-seconds:<br>
+            &nbsp;&nbsp;Minimum = 1ms, Maximum = 1ms, Average = 1ms
+        </div>
+
+        <p>สังเกตว่าการตอบกลับ ping แรกหมดเวลา เหตุผลคือ คำขอ echo แรกกระตุ้น S2S-VPN-ACL ซึ่งทำให้ R1
+            เจรจาและสร้างอุโมงค์ IPsec VPN กับ R3</p>
+
+        <h3>b. วิธีอื่นในการเริ่มทราฟฟิกที่น่าสนใจคือการใช้ extended ping บน R1</h3>
+
+        <p>Extended ping ช่วยให้คุณควบคุมที่อยู่ต้นทางของแพ็กเก็ตได้</p>
+
+        <div class="command">
+            <span class="command-prompt">R1#</span> <span class="command-input">ping 10.10.16.1 source g0/0/1</span><br>
+            <span class="command-output">Type escape sequence to abort.</span><br>
+            <span class="command-output">Sending 5, 100-byte ICMP Echos to 10.10.16.1, timeout is 2 seconds:</span><br>
+            <span class="command-output">Packet sent with a source address of 10.10.0.1</span><br>
+            <span class="command-output">.!!!!</span><br>
+            <span class="command-output">Success rate is 80 percent (4/5), round-trip min/avg/max = 2/3/4 ms</span>
+        </div>
+
+        <p>เหมือนกับการ ping ก่อนหน้านี้ การตอบกลับ echo แรกหมดเวลา เหตุผลคือเพื่อสร้าง SA สำหรับเครือข่าย 10.10.16.0/23
+        </p>
+
+        <h3>c. ออกคำสั่ง show crypto isakmp sa อีกครั้ง</h3>
+
+        <div class="command">
+            <span class="command-prompt">R1#</span> <span class="command-input">show crypto isakmp sa</span><br>
+            <span class="command-output">IPv4 Crypto ISAKMP SA</span><br>
+            <span class="command-output">dst src state conn-id status</span><br>
+            <span class="highlight-output">64.100.1.2 64.100.0.2 QM_IDLE 1001 ACTIVE</span><br>
+            <span class="command-output">IPv6 Crypto ISAKMP SA</span>
+        </div>
+
+        <p>SA แสดงว่าอุโมงค์กำลังทำงานอยู่</p>
+
+        <div class="question-answer">
+            <p class="question">คำถาม: ทำไมจึงมีการสร้าง SA ระหว่าง R1 และ R3 ในครั้งนี้?</p>
+            <p class="answer">
+                <strong>คำตอบ:</strong> แหล่งที่มาของการ ping คือจากเครือข่าย R1 ไปยังเครือข่าย R3
+                นี่เป็นทราฟฟิกที่น่าสนใจตามรายการใน ACL S2S-VPN-ACL มีการสร้าง SA
+                และแพ็กเก็ตส่งผ่านอุโมงค์เป็นทราฟฟิกที่เข้ารหัสแล้ว
+            </p>
+        </div>
+
+        <h3>d. ตรวจสอบสถิติทราฟฟิก IPsec โดยใช้คำสั่ง show crypto ipsec sa</h3>
+
+        <div class="question-answer">
+            <p class="question">คำถาม: มีการแปลงแพ็กเก็ตกี่แพ็กเก็ตระหว่าง R1 และ R3?</p>
+            <p class="answer">
+                <strong>คำตอบ:</strong> คำตอบอาจแตกต่างกันไป เจ็ด: สามจากห้าแพ็กเก็ตจากการ ping จาก R1 ไปยัง R3,
+                สี่แพ็กเก็ตจากการ ping จาก PC-A ไปยัง R3 และหนึ่งแพ็กเก็ตสำหรับแต่ละคำขอ echo
+                จำนวนแพ็กเก็ตอาจแตกต่างกันไปขึ้นอยู่กับจำนวนการ ping ที่ออกไปและจากที่ใด
+            </p>
+        </div>
+
+        <div class="command">
+            <span class="command-prompt">R1#</span> <span class="command-input">show crypto ipsec sa</span><br>
+            <span class="command-output">interface: GigabitEthernet0/0/0</span><br>
+            <span class="command-output"> Crypto map tag: S2S-CMAP
+                <span class="command-output"> Crypto map tag: S2S-CMAP, local addr 64.100.0.2</span><br>
+                <span class="command-output"> protected vrf: (none)</span><br>
+                <span class="command-output"> local ident (addr/mask/prot/port):
+                    (10.10.0.0/255.255.252.0/0/0)</span><br>
+                <span class="command-output"> remote ident (addr/mask/prot/port):
+                    (10.10.4.0/255.255.252.0/0/0)</span><br>
+                <span class="command-output"> current_peer 64.100.1.2 port 500</span><br>
+                <span class="command-output"> PERMIT, flags={origin_is_acl,}</span><br>
+                <span class="highlight-output"> #pkts encaps: 3, #pkts encrypt: 3, #pkts digest: 3</span><br>
+                <span class="highlight-output"> #pkts decaps: 3, #pkts decrypt: 3, #pkts verify: 3</span><br>
+                <span class="command-output"> #pkts compressed: 0, #pkts decompressed: 0</span><br>
+                <span class="command-output"> #pkts not compressed: 0, #pkts compr. failed: 0</span><br>
+                <span class="command-output"> #pkts not decompressed: 0, #pkts decompress failed: 0</span><br>
+                <span class="command-output"> #send errors 0, #recv errors 0</span><br>
+                <span class="command-output"> local crypto endpt.: 64.100.0.2, remote crypto endpt.:
+                    64.100.1.2</span><br>
+                <span class="command-output"> plaintext mtu 1438, path mtu 1500, ip mtu 1500, ip mtu idb
+                    GigabitEthernet0/0/0</span><br>
+                <span class="command-output"> current outbound spi: 0xD225EBA7(3525700519)</span><br>
+                <span class="command-output"> PFS (Y/N): Y, DH group: group14</span><br>
+                <span class="command-output"> inbound esp sas:</span><br>
+                <span class="command-output"> spi: 0xB2682427(2993169447)</span><br>
+                <span class="command-output"> transform: esp-256-aes esp-sha256-hmac ,</span><br>
+                <span class="command-output"> in use settings ={Tunnel, }</span><br>
+                <span class="command-output"> conn id: 2007, flow_id: ESG:7, sibling_flags FFFFFFFF80004048, crypto map:
+                    S2S-CMAP</span><br>
+                <span class="command-output"> sa timing: remaining key lifetime (k/sec): (4608000/590)</span><br>
+                <span class="command-output"> IV size: 16 bytes</span><br>
+                <span class="command-output"> replay detection support: Y</span><br>
+                <span class="command-output"> Status: ACTIVE(ACTIVE)</span><br>
+                <span class="command-output"> inbound ah sas:</span><br>
+                <span class="command-output"> inbound pcp sas:</span><br>
+                <span class="command-output"> outbound esp sas:</span><br>
+                <span class="command-output"> spi: 0xD225EBA7(3525700519)</span><br>
+                <span class="command-output"> transform: esp-256-aes esp-sha256-hmac ,</span><br>
+                <span class="command-output"> in use settings ={Tunnel, }</span><br>
+                <span class="command-output"> conn id: 2008, flow_id: ESG:8, sibling_flags FFFFFFFF80004048, crypto map:
+                    S2S-CMAP</span><br>
+                <span class="command-output"> sa timing: remaining key lifetime (k/sec): (4608000/590)</span><br>
+                <span class="command-output"> IV size: 16 bytes</span><br>
+                <span class="command-output"> replay detection support: Y</span><br>
+                <span class="command-output"> Status: ACTIVE(ACTIVE)</span><br>
+                <span class="command-output"> outbound ah sas:</span><br>
+                <span class="command-output"> outbound pcp sas:</span><br>
+                <span class="command-output"> protected vrf: (none)</span><br>
+                <span class="command-output"> local ident (addr/mask/prot/port):
+                    (10.10.0.0/255.255.252.0/0/0)</span><br>
+                <span class="command-output"> remote ident (addr/mask/prot/port):
+                    (10.10.16.0/255.255.248.0/0/0)</span><br>
+                <span class="command-output"> current_peer 64.100.1.2 port 500</span><br>
+                <span class="command-output"> PERMIT, flags={origin_is_acl,}</span><br>
+                <span class="highlight-output"> #pkts encaps: 4, #pkts encrypt: 4, #pkts digest: 4</span><br>
+                <span class="highlight-output"> #pkts decaps: 4, #pkts decrypt: 4, #pkts verify: 4</span>
+        </div>
+
+        <h3>e. ตัวอย่างก่อนหน้านี้ใช้ ping เพื่อสร้างทราฟฟิกที่น่าสนใจ</h3>
+
+        <div class="question-answer">
+            <p class="question">คำถาม: ทราฟฟิกประเภทใดอื่นๆ ที่จะส่งผลให้เกิดการสร้าง SA และการสร้างอุโมงค์?</p>
+            <p class="answer">
+                <strong>คำตอบ:</strong> ทราฟฟิกใดๆ (เช่น FTP, HTTP, Telnet และอื่นๆ) ที่เริ่มต้นจากเครือข่าย R1
+                ที่มีที่อยู่ปลายทางไปยังเครือข่าย R3 จะถือเป็นทราฟฟิกที่น่าสนใจ
+            </p>
+        </div>
+
+        <div class="question-answer">
+            <p class="question">คำถาม: โปรโตคอลการหาเส้นทาง (routing protocols) สามารถส่งผ่านอุโมงค์ IPsec site-to-site
+                VPN ได้หรือไม่?</p>
+            <p class="answer">
+                <strong>คำตอบ:</strong> ไม่ได้โดยค่าเริ่มต้น จำเป็นต้องกำหนดค่า GRE ร่วมกับ IPsec
+                เพื่อรองรับโปรโตคอลการหาเส้นทางระหว่างไซต์
+            </p>
+        </div>
+
+        <div class="theory-box">
+            <h3>ข้อสรุปสำคัญเกี่ยวกับการทำงานของ IPsec VPN</h3>
+            <ol>
+                <li><strong>การเริ่มต้นอุโมงค์:</strong> อุโมงค์ IPsec VPN จะไม่เริ่มต้นจนกว่าจะมีทราฟฟิกที่ตรงกับ
+                    access list ที่ระบุเป็น "interesting traffic"</li>
+                <li><strong>การตรวจสอบสถานะ:</strong> คำสั่ง <code>show crypto isakmp sa</code> และ
+                    <code>show crypto ipsec sa</code> เป็นเครื่องมือสำคัญในการตรวจสอบสถานะและการทำงานของ VPN
+                </li>
+                <li><strong>Interesting vs Uninteresting:</strong> ทราฟฟิกที่ไม่ตรงกับ access list
+                    จะไม่ถูกเข้ารหัสแต่ยังสามารถส่งผ่านได้ตามปกติ</li>
+                <li><strong>การสูญเสียแพ็กเก็ตแรก:</strong>
+                    เป็นเรื่องปกติที่แพ็กเก็ตแรกจะหมดเวลาเนื่องจากต้องใช้เวลาในการเจรจาและสร้างอุโมงค์ VPN</li>
+                <li><strong>ข้อจำกัด:</strong> โปรโตคอลการหาเส้นทางไม่สามารถทำงานผ่าน IPsec ได้โดยตรง ต้องใช้ GRE
+                    ร่วมด้วย</li>
+            </ol>
+        </div>
+
+        <div class="summary-box">
+            <h3>สรุปการตรวจสอบ Site-to-Site VPN</h3>
+            <p>การตรวจสอบการทำงานของ Site-to-Site VPN ระหว่าง R1 และ R3 ประกอบด้วย:</p>
+            <ol>
+                <li>ตรวจสอบการกำหนดค่าด้วยคำสั่ง <code>show</code> ต่างๆ เช่น
+                    <code>show crypto ipsec transform-set</code> และ <code>show crypto map</code>
+                </li>
+                <li>ตรวจสอบสถานะ ISAKMP และ IPsec Security Associations</li>
+                <li>ทดสอบด้วยทราฟฟิกที่ "ไม่น่าสนใจ" เพื่อยืนยันว่าไม่มีการสร้างอุโมงค์</li>
+                <li>สร้างทราฟฟิกที่ "น่าสนใจ" เพื่อกระตุ้นให้เกิดการสร้างอุโมงค์</li>
+                <li>ตรวจสอบยืนยันว่าอุโมงค์ทำงานได้โดยดูจากสถานะ SA และสถิติแพ็กเก็ต</li>
+            </ol>
+            <p>เมื่อกำหนดค่าถูกต้อง ทราฟฟิกระหว่างเครือข่ายที่ระบุในนโยบายจะถูกเข้ารหัสและส่งผ่านอุโมงค์ IPsec VPN
+                อย่างปลอดภัย ในขณะที่ทราฟฟิกอื่นๆ จะถูกส่งโดยไม่มีการเข้ารหัส</p>
+        </div>
+    </div>
+</body>
+
+</html>

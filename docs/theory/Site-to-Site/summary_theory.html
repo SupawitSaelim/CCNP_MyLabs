@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPsec VPN คืออะไร และทำงานอย่างไร</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --light-bg: #f0f9ff;
+            --dark-text: #1e293b;
+            --light-text: #f8fafc;
+            --border-color: #cbd5e1;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            color: var(--dark-text);
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        main {
+            padding: 40px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 8px;
+            margin-top: 40px;
+            font-size: 1.75rem;
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            margin-top: 30px;
+            font-size: 1.35rem;
+        }
+
+        p,
+        li {
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .definition-box {
+            background-color: var(--light-bg);
+            border-left: 5px solid var(--primary-color);
+            padding: 20px 25px;
+            margin: 25px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .definition-box h4 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .definition-box p {
+            margin-bottom: 0;
+        }
+
+        .workflow-container {
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .workflow-step {
+            display: flex;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .step-number {
+            background-color: var(--primary-color);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-right: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-content {
+            flex-grow: 1;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.15rem;
+        }
+
+        .step-description {
+            margin: 0;
+        }
+
+        .workflow-line {
+            position: absolute;
+            left: 18px;
+            top: 36px;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--border-color);
+            z-index: 1;
+        }
+
+        code {
+            font-family: 'Sarabun', monospace;
+            background-color: #f1f5f9;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.95em;
+            color: #0f172a;
+        }
+
+        .code-block {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: monospace;
+            line-height: 1.5;
+            margin: 20px 0;
+        }
+
+        .code-comment {
+            color: #94a3b8;
+        }
+
+        .highlight {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid var(--accent-color);
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .highlight h4 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-right: 6px;
+        }
+
+        .tag-phase1 {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .tag-phase2 {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .diagram {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .diagram img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .diagram-title {
+            margin-top: 10px;
+            font-style: italic;
+            color: #64748b;
+        }
+
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: #64748b;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.9em;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .comparison-table thead tr {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px 15px;
+        }
+
+        .comparison-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+        .comparison-table tbody tr:nth-of-type(even) {
+            background-color: #f3f4f6;
+        }
+
+        .comparison-table tbody tr:last-of-type {
+            border-bottom: 2px solid var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>IPsec VPN คืออะไร และทำงานอย่างไร</h1>
+            <div class="subtitle">การอธิบายแบบละเอียดเกี่ยวกับ IPsec, IKE, ISAKMP และการทำงานของ Site-to-Site VPN</div>
+        </header>
+
+        <main>
+            <h2>ส่วนประกอบหลักของ IPsec VPN</h2>
+
+            <div class="definition-box">
+                <h4>IPsec (IP Security)</h4>
+                <p>ชุดโปรโตคอลที่ให้บริการด้านความปลอดภัยสำหรับการสื่อสารผ่านเครือข่าย IP ด้วยการเข้ารหัสข้อมูล
+                    การพิสูจน์ตัวตน และการรักษาความสมบูรณ์ของข้อมูล</p>
+            </div>
+
+            <div class="definition-box">
+                <h4>ISAKMP (Internet Security Association and Key Management Protocol)</h4>
+                <p>เฟรมเวิร์คที่กำหนดวิธีการสร้างความสัมพันธ์ด้านความปลอดภัย (Security Associations)
+                    และการจัดการคีย์ระหว่างอุปกรณ์ VPN วางโครงสร้างและขั้นตอนการแลกเปลี่ยนข้อมูล</p>
+            </div>
+
+            <div class="definition-box">
+                <h4>IKE (Internet Key Exchange)</h4>
+                <p>โปรโตคอลที่ใช้ในการเจรจาและแลกเปลี่ยนคีย์ระหว่างอุปกรณ์ VPN peers สร้างบนพื้นฐานของ ISAKMP
+                    และทำงานเป็นสองเฟส</p>
+            </div>
+
+            <div class="definition-box">
+                <h4>Security Association (SA)</h4>
+                <p>ความสัมพันธ์ระหว่างอุปกรณ์สื่อสารที่กำหนดวิธีการที่จะใช้ในการสื่อสารอย่างปลอดภัย (เช่น
+                    อัลกอริทึมการเข้ารหัส วิธีการพิสูจน์ตัวตน คีย์ที่ใช้)</p>
+            </div>
+
+            <h2>เปรียบเทียบระหว่าง IKE, ISAKMP และ IPsec</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>คุณลักษณะ</th>
+                        <th>IPsec</th>
+                        <th>ISAKMP</th>
+                        <th>IKE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>หน้าที่หลัก</td>
+                        <td>เข้ารหัสข้อมูลจริง</td>
+                        <td>กำหนดโครงสร้างการสื่อสาร</td>
+                        <td>เจรจาและแลกเปลี่ยนคีย์</td>
+                    </tr>
+                    <tr>
+                        <td>ชั้นการทำงาน</td>
+                        <td>Network Layer (Layer 3)</td>
+                        <td>เฟรมเวิร์คการสื่อสาร</td>
+                        <td>โปรโตคอลการแลกเปลี่ยนคีย์</td>
+                    </tr>
+                    <tr>
+                        <td>ใช้โปรโตคอล</td>
+                        <td>ESP, AH</td>
+                        <td>-</td>
+                        <td>ISAKMP</td>
+                    </tr>
+                    <tr>
+                        <td>เฟส</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>Phase 1, Phase 2</td>
+                    </tr>
+                    <tr>
+                        <td>ความสัมพันธ์</td>
+                        <td>ได้รับคีย์จาก IKE</td>
+                        <td>เป็นพื้นฐานให้ IKE</td>
+                        <td>ใช้ ISAKMP สร้าง SAs สำหรับ IPsec</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>ลำดับการทำงานของ IPsec VPN</h2>
+
+            <div class="workflow-container">
+                <div class="workflow-line"></div>
+
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4 class="step-title">การกำหนดนโยบาย IKE (Phase 1) บนเราเตอร์</h4>
+                        <p class="step-description">
+                            เราเตอร์ทั้งสองฝั่งกำหนดนโยบาย IKE ที่ระบุวิธีการพิสูจน์ตัวตน อัลกอริทึมการเข้ารหัส
+                            ฟังก์ชันแฮช และพารามิเตอร์อื่นๆ
+                        </p>
+                        <div class="code-block">
+                            crypto isakmp policy 10<br>
+                            &nbsp;&nbsp;encr aes 256<br>
+                            &nbsp;&nbsp;hash sha256<br>
+                            &nbsp;&nbsp;authentication pre-share<br>
+                            &nbsp;&nbsp;group 14<br>
+                            &nbsp;&nbsp;lifetime 3600<br>
+                            crypto isakmp key cisco123 address 64.100.1.2
+                        </div>
+                    </div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4 class="step-title">การกำหนดค่า IPsec (Phase 2)</h4>
+                        <p class="step-description">
+                            กำหนด transform set ที่ระบุวิธีการเข้ารหัสข้อมูลที่จะใช้จริงและอายุของ Security Association
+                        </p>
+                        <div class="code-block">
+                            crypto ipsec transform-set S2S-VPN esp-aes 256 esp-sha256-hmac<br>
+                            crypto ipsec security-association lifetime seconds 1800
+                        </div>
+                    </div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4 class="step-title">การกำหนดการจราจรที่น่าสนใจ (Interesting Traffic)</h4>
+                        <p class="step-description">
+                            กำหนด Access List เพื่อระบุว่าการจราจรแบบใดที่ควรได้รับการเข้ารหัส
+                        </p>
+                        <div class="code-block">
+                            ip access-list extended S2S-VPN-ACL<br>
+                            &nbsp;&nbsp;permit ip 10.10.0.0 0.0.3.255 10.10.4.0 0.0.3.255<br>
+                            &nbsp;&nbsp;permit ip 10.10.0.0 0.0.3.255 10.10.16.0 0.0.7.255
+                        </div>
+                    </div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4 class="step-title">การสร้าง Crypto Map</h4>
+                        <p class="step-description">
+                            รวบรวมทุกองค์ประกอบเข้าด้วยกัน: peer ปลายทาง, transform set, และ traffic selector
+                        </p>
+                        <div class="code-block">
+                            crypto map S2S-CMAP 10 ipsec-isakmp<br>
+                            &nbsp;&nbsp;set peer 64.100.1.2<br>
+                            &nbsp;&nbsp;set transform-set S2S-VPN<br>
+                            &nbsp;&nbsp;set pfs group14<br>
+                            &nbsp;&nbsp;match address S2S-VPN-ACL
+                        </div>
+                    </div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h4 class="step-title">การใช้งาน Crypto Map กับอินเทอร์เฟส</h4>
+                        <p class="step-description">
+                            นำ Crypto Map ที่สร้างไปใช้กับอินเทอร์เฟสที่เชื่อมต่อกับเครือข่ายภายนอก
+                        </p>
+                        <div class="code-block">
+                            interface GigabitEthernet0/0/0<br>
+                            &nbsp;&nbsp;crypto map S2S-CMAP
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>กระบวนการทำงานเมื่อมีข้อมูลส่งผ่าน VPN</h2>
+
+            <div class="diagram">
+                <svg width="800" height="480" viewBox="0 0 800 480">
+                    <!-- Background -->
+                    <rect width="800" height="480" fill="#f8fafc" rx="12" />
+
+                    <!-- Network Devices -->
+                    <rect x="100" y="180" width="120" height="60" fill="#1e40af" rx="6" />
+                    <text x="160" y="215" fill="white" text-anchor="middle" font-family="Sarabun"
+                        font-size="16">R1</text>
+
+                    <rect x="400" y="180" width="120" height="60" fill="#64748b" rx="6" />
+                    <text x="460" y="215" fill="white" text-anchor="middle" font-family="Sarabun" font-size="16">R2
+                        (ISP)</text>
+
+                    <rect x="700" y="180" width="120" height="60" fill="#1e40af" rx="6" />
+                    <text x="760" y="215" fill="white" text-anchor="middle" font-family="Sarabun"
+                        font-size="16">R3</text>
+
+                    <!-- End Devices -->
+                    <rect x="50" y="340" width="80" height="40" fill="#94a3b8" rx="4" />
+                    <text x="90" y="365" fill="white" text-anchor="middle" font-family="Sarabun"
+                        font-size="14">PC1</text>
+
+                    <rect x="770" y="340" width="80" height="40" fill="#94a3b8" rx="4" />
+                    <text x="810" y="365" fill="white" text-anchor="middle" font-family="Sarabun"
+                        font-size="14">PC3</text>
+
+                    <!-- Connections -->
+                    <line x1="220" y1="210" x2="400" y2="210" stroke="#64748b" stroke-width="3" />
+                    <line x1="520" y1="210" x2="700" y2="210" stroke="#64748b" stroke-width="3" />
+                    <line x1="90" y1="340" x2="160" y2="240" stroke="#94a3b8" stroke-width="2" />
+                    <line x1="810" y1="340" x2="740" y2="240" stroke="#94a3b8" stroke-width="2" />
+
+                    <!-- VPN Tunnel -->
+                    <path d="M 220,180 C 400,100 520,100 700,180" stroke="#10b981" stroke-width="4"
+                        stroke-dasharray="12,8" fill="none" />
+
+                    <!-- Process Steps -->
+                    <!-- Step 1: Interesting Traffic Detection -->
+                    <circle cx="160" cy="110" r="22" fill="#dbeafe" stroke="#1e40af" stroke-width="2" />
+                    <text x="160" y="115" fill="#1e40af" text-anchor="middle" font-family="Sarabun"
+                        font-weight="bold">1</text>
+                    <rect x="80" y="60" width="160" height="35" rx="4" fill="white" stroke="#1e40af" stroke-width="1" />
+                    <text x="160" y="83" fill="#1e293b" text-anchor="middle" font-family="Sarabun" font-size="12">ตรวจพบ
+                        Interesting Traffic</text>
+
+                    <!-- Step 2: IKE Phase 1 -->
+                    <circle cx="310" cy="130" r="22" fill="#dbeafe" stroke="#1e40af" stroke-width="2" />
+                    <text x="310" y="135" fill="#1e40af" text-anchor="middle" font-family="Sarabun"
+                        font-weight="bold">2</text>
+                    <rect x="230" y="80" width="160" height="35" rx="4" fill="white" stroke="#1e40af"
+                        stroke-width="1" />
+                    <text x="310" y="103" fill="#1e293b" text-anchor="middle" font-family="Sarabun" font-size="12">IKE
+                        Phase 1</text>
+
+                    <!-- Step 3: IKE Phase 2 -->
+                    <circle cx="460" cy="110" r="22" fill="#dcfce7" stroke="#166534" stroke-width="2" />
+                    <text x="460" y="115" fill="#166534" text-anchor="middle" font-family="Sarabun"
+                        font-weight="bold">3</text>
+                    <rect x="380" y="60" width="160" height="35" rx="4" fill="white" stroke="#166534"
+                        stroke-width="1" />
+                    <text x="460" y="83" fill="#1e293b" text-anchor="middle" font-family="Sarabun" font-size="12">IKE
+                        Phase 2</text>
+
+                    <!-- Step 4: IPsec Data Transfer -->
+                    <circle cx="610" cy="130" r="22" fill="#dcfce7" stroke="#166534" stroke-width="2" />
+                    <text x="610" y="135" fill="#166534" text-anchor="middle" font-family="Sarabun"
+                        font-weight="bold">4</text>
+                    <rect x="530" y="80" width="160" height="35" rx="4" fill="white" stroke="#166534"
+                        stroke-width="1" />
+                    <text x="610" y="103" fill="#1e293b" text-anchor="middle" font-family="Sarabun"
+                        font-size="12">ข้อมูลถูกเข้ารหัสและส่ง</text>
+
+                    <!-- Legend -->
+                    <rect x="200" y="400" width="400" height="60" rx="6" fill="white" stroke="#e2e8f0"
+                        stroke-width="1" />
+                    <circle cx="230" y="420" r="8" fill="#dbeafe" stroke="#1e40af" stroke-width="2" />
+                    <text x="250" y="425" fill="#1e293b" font-family="Sarabun" font-size="14">IKE Phase 1</text>
+                    <circle cx="230" y="445" r="8" fill="#dcfce7" stroke="#166534" stroke-width="2" />
+                    <text x="250" y="450" fill="#1e293b" font-family="Sarabun" font-size="14">IKE Phase 2 / IPsec</text>
+                    <line x1="400" y1="420" x2="430" y2="420" stroke="#64748b" stroke-width="3" />
+                    <text x="450" y="425" fill="#1e293b" font-family="Sarabun" font-size="14">ปกติ</text>
+                    <line x1="400" y1="445" x2="430" y2="445" stroke="#10b981" stroke-width="4"
+                        stroke-dasharray="4,3" />
+                    <text x="450" y="450" fill="#1e293b" font-family="Sarabun" font-size="14">อุโมงค์ VPN</text>
+                </svg>
+                <div class="diagram-title">ภาพที่ 1: กระบวนการทำงานของ IPsec VPN</div>
+            </div>
+
+            <div class="workflow-container">
+                <div class="workflow-line"></div>
+
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4 class="step-title">การระบุ Interesting Traffic</h4>
+                        <p class="step-description">
+                            เมื่อ PC1 ส่งข้อมูลไปยัง PC3 ผ่าน R1, R1 ตรวจสอบ packet กับ ACL และพบว่าเป็น "interesting
+                            traffic" ที่ต้องการการเข้ารหัส
+                        </p>
+                    </div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4 class="step-title">IKE Phase 1: การสร้างช่องทางปลอดภัย <span class="tag tag-phase1">Phase
+                                1</span></h4>
+                        <p class="step-description">
+                            R1 เริ่มกระบวนการ IKE Phase 1 กับ R3:
+                        </p>
+                        <ul>
+                            <li>ทั้งคู่เจรจานโยบาย ISAKMP (การเข้ารหัส, แฮช, Diffie-Hellman group)</li>
+                            <li>สร้าง IKE SA ซึ่งเป็นการสร้างช่องทางปลอดภัยสำหรับการเจรจา Phase 2</li>
+                            <li>ใช้ pre-shared key เพื่อพิสูจน์ตัวตนซึ่งกันและกัน</li>
+                            <li>แลกเปลี่ยนคีย์โดยใช้ Diffie-Hellman</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4 class="step-title">IKE Phase 2: การสร้าง IPsec SA <span class="tag tag-phase2">Phase
+                                2</span></h4>
+                        <p class="step-description">
+                            ใช้ช่องทางปลอดภัยที่สร้างในเฟส 1 เพื่อเจรจาพารามิเตอร์สำหรับ IPsec SA:
+                        </p>
+                        <ul>
+                            <li>เจรจา transform set (ESP-AES-256, ESP-SHA256-HMAC)</li>
+                            <li>สร้าง IPsec SA คู่ (หนึ่งสำหรับแต่ละทิศทาง)</li>
+                            <li>สร้างคีย์สำหรับการเข้ารหัสข้อมูลจริง</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4 class="step-title">การส่งข้อมูลผ่านอุโมงค์ IPsec <span class="tag tag-phase2">Phase 2</span>
+                        </h4>
+                        <p class="step-description">
+                            ตอนนี้ข้อมูลจะถูกเข้ารหัสและส่งผ่านอุโมงค์ IPsec:
+                        </p>
+                        <ul>
+                            <li>R1 เข้ารหัสข้อมูลโดยใช้ ESP ตามที่กำหนดใน transform set</li>
+                            <li>แพ็คเก็ตถูกห่อหุ้มด้วย ESP header และ trailer</li>
+                            <li>แพ็คเก็ตที่เข้ารหัสแล้วถูกส่งผ่านอินเทอร์เน็ต (R2) ไปยัง R3</li>
+                            <li>R3 ถอดรหัสข้อมูลโดยใช้คีย์ที่แลกเปลี่ยนกันไว้</li>
+                            <li>ข้อมูลที่ถอดรหัสแล้วถูกส่งต่อไปยังปลายทางที่แท้จริง (PC3)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h4 class="step-title">การบำรุงรักษา SA</h4>
+                        <p class="step-description">
+                            SAs มีอายุการใช้งานตามที่กำหนด:
+                        </p>
+                        <ul>
+                            <li>IKE SA มีอายุ 3600 วินาที (1 ชั่วโมง)</li>
+                            <li>IPsec SA มีอายุ 900 วินาที (15 นาที)</li>
+                            <li>เมื่อใกล้ครบกำหนด จะมีการเจรจาคีย์ใหม่โดยอัตโนมัติ</li>
+                            <li>SAs ที่หมดอายุจะถูกลบและสร้างใหม่</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h2>การตรวจสอบสถานะของ VPN</h2>
+
+            <div class="highlight">
+                <h4>คำสั่งตรวจสอบ IKE</h4>
+                <p>คำสั่ง <code>show crypto isakmp sa</code> แสดงสถานะของ IKE SA:</p>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

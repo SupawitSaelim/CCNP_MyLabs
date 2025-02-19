@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การกำหนดค่า Site-to-Site VPN ขั้นตอนที่ 2-3</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #2980b9;
+            font-size: 22px;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 12px;
+        }
+        
+        h3 {
+            color: #1a5276;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        .theory-box {
+            background-color: #eaf2f8;
+            padding: 20px;
+            border-left: 5px solid #3498db;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .command {
+            font-family: 'Courier New', monospace;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+        
+        .command-prompt {
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .command-input {
+            color: #2ecc71;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f7fb;
+        }
+        
+        tr:hover {
+            background-color: #e6f2ff;
+        }
+        
+        .note {
+            background-color: #fffacd;
+            border-left: 5px solid #f1c40f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .highlight {
+            background-color: #fff5e6;
+            border: 1px dashed #ff9800;
+            padding: 3px 5px;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+        
+        .steps {
+            counter-reset: step-counter;
+            margin-left: 0;
+            padding-left: 0;
+        }
+        
+        .step {
+            list-style-type: none;
+            margin-bottom: 20px;
+            padding-left: 45px;
+            position: relative;
+        }
+        
+        .step:before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+        }
+        
+        .parameter-box {
+            background-color: #f0f7fb;
+            border: 1px solid #d0e5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .parameter-name {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        
+        .transform-table {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .transform-item {
+            flex: 1 1 300px;
+            background: #f5f8fa;
+            border: 1px solid #dce6f0;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        
+        .transform-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .transform-description {
+            font-size: 14px;
+            color: #5a6b7b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>การกำหนดค่า Site-to-Site VPN: ขั้นตอนที่ 2-3</h1>
+        
+        <h2>ขั้นตอนที่ 2: กำหนดค่า Pre-Shared Keys บน R1 และ R3</h2>
+        
+        <div class="theory-box">
+            <h3>ทฤษฎี: Pre-Shared Keys ใน IPsec VPN</h3>
+            <p>
+                Pre-shared key (PSK) เป็นวิธีการพิสูจน์ตัวตนแบบง่ายที่สุดใน IPsec VPN โดยทั้งสองฝั่งของอุโมงค์ VPN 
+                จะต้องมีรหัสลับ (secret key) เดียวกันเพื่อใช้ในการตรวจสอบความถูกต้องระหว่างกัน คีย์นี้จะถูกใช้ใน
+                กระบวนการเจรจา IKE Phase 1 เพื่อสร้างความสัมพันธ์ด้านความปลอดภัย (Security Association)
+            </p>
+            <p>
+                <strong>ข้อควรระวัง:</strong> ในสภาพแวดล้อมการผลิตจริง ควรใช้คีย์ที่มีความซับซ้อนและยาวมากกว่าที่ใช้ในตัวอย่างนี้
+                และควรพิจารณาใช้วิธีการพิสูจน์ตัวตนที่ปลอดภัยกว่า เช่น การใช้ใบรับรองดิจิทัล (digital certificates)
+            </p>
+        </div>
+        
+        <p>
+            เนื่องจากเราได้เลือกใช้วิธีการตรวจสอบสิทธิ์แบบ Pre-shared keys ในนโยบาย IKE ดังนั้นเราจำเป็นต้องกำหนดคีย์บนแต่ละเราเตอร์โดยชี้ไปยังปลายทาง VPN อีกฝั่งหนึ่ง คีย์เหล่านี้ต้องตรงกันเพื่อให้การตรวจสอบสิทธิ์สำเร็จ
+        </p>
+        
+        <h3>คำสั่งกำหนดค่า Pre-Shared Key</h3>
+        <div class="command">
+            <span class="command-prompt">Router(config)#</span> <span class="command-input">crypto isakmp key คีย์ address IP-ปลายทาง</span>
+        </div>
+        
+        <div class="note">
+            <p><strong>หมายเหตุ:</strong> พารามิเตอร์ ip-address สามารถกำหนดเป็น 0.0.0.0 0.0.0.0 เพื่อให้จับคู่กับเพียร์ใด ๆ ก็ได้ แต่ไม่แนะนำให้ใช้ในสภาพแวดล้อมการใช้งานจริงเนื่องจากลดระดับความปลอดภัย</p>
+        </div>
+
+        <h3>การตรวจสอบที่อยู่ IP</h3>
+        <p>
+            ในการกำหนดค่าเพียร์ IKE ต้องใช้ที่อยู่ IP ของอินเทอร์เฟซภายนอกของเราเตอร์ปลายทาง ซึ่งในตัวอย่างนี้คือ:
+        </p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>อุปกรณ์</th>
+                    <th>อินเทอร์เฟซ</th>
+                    <th>ที่อยู่ IP</th>
+                    <th>รายละเอียด</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>R1</td>
+                    <td>G0/0/0</td>
+                    <td>64.100.0.2</td>
+                    <td>ใช้สำหรับการรับส่งข้อมูลปกติระหว่าง R1 และ R3</td>
+                </tr>
+                <tr>
+                    <td>R3</td>
+                    <td>G0/0/0</td>
+                    <td>64.100.1.2</td>
+                    <td>ใช้สำหรับการรับส่งข้อมูลปกติระหว่าง R1 และ R3</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>ขั้นตอนการกำหนดค่า Pre-Shared Keys</h3>
+        
+        <ol class="steps">
+            <li class="step">
+                <p>กำหนดค่า pre-shared key บน R1 โดยชี้ไปที่ IP ของอินเทอร์เฟซ G0/0/0 ของ R3</p>
+                <div class="command">
+                    <span class="command-prompt">R1(config)#</span> <span class="command-input">crypto isakmp key cisco123 address 64.100.1.2</span>
+                </div>
+            </li>
+            <li class="step">
+                <p>กำหนดค่า pre-shared key บน R3 โดยชี้ไปที่ IP ของอินเทอร์เฟซ G0/0/0 ของ R1</p>
+                <div class="command">
+                    <span class="command-prompt">R3(config)#</span> <span class="command-input">crypto isakmp key cisco123 address 64.100.0.2</span>
+                </div>
+            </li>
+        </ol>
+        
+        <h2>ขั้นตอนที่ 3: กำหนดค่า IPsec Transform Set และ Lifetime บน R1 และ R3</h2>
+        
+        <div class="theory-box">
+            <h3>ทฤษฎี: IPsec Transform Set</h3>
+            <p>
+                IPsec transform set เป็นอีกหนึ่งพารามิเตอร์การกำหนดค่าการเข้ารหัสที่เราเตอร์ใช้ในการเจรจาเพื่อสร้างความสัมพันธ์ด้านความปลอดภัย (security association) Transform set ระบุชุดของอัลกอริทึมและฟังก์ชันการเข้ารหัส (transforms) ที่เราเตอร์ใช้กับแพ็กเก็ตข้อมูลจริงที่ส่งผ่านอุโมงค์ IPsec อัลกอริทึมเหล่านี้รวมถึงการเข้ารหัส การห่อหุ้ม (encapsulation) การพิสูจน์ตัวตน และบริการรักษาความสมบูรณ์ของข้อมูลที่ IPsec สามารถนำไปใช้
+            </p>
+        </div>
+        
+        <h3>คำสั่งสร้าง IPsec Transform Set</h3>
+        <div class="command">
+            <span class="command-prompt">Router(config)#</span> <span class="command-input">crypto ipsec transform-set ชื่อ-transform-set transform1 [transform2 [transform3]]</span>
+        </div>
+        
+        <h3>ตัวเลือก Transform Set</h3>
+        
+        <div class="transform-table">
+            <div class="transform-item">
+                <div class="transform-name">ah-md5-hmac</div>
+                <div class="transform-description">AH-HMAC-MD5 transform - ใช้ Authentication Header กับ MD5</div>
+            </div>
+            <div class="transform-item">
+                <div class="transform-name">ah-sha-hmac</div>
+                <div class="transform-description">AH-HMAC-SHA transform - ใช้ Authentication Header กับ SHA</div>
+            </div>
+            <div class="transform-item">
+                <div class="transform-name">esp-aes</div>
+                <div class="transform-description">ESP transform ใช้การเข้ารหัส AES</div>
+            </div>
+            <div class="transform-item">
+                <div class="transform-name">esp-256-aes</div>
+                <div class="transform-description">ESP transform ใช้การเข้ารหัส AES (256 bit)</div>
+            </div>
+            <div class="transform-item">
+                <div class="transform-name">esp-sha256-hmac</div>
+                <div class="transform-description">ESP transform ใช้ HMAC-SHA256 สำหรับการพิสูจน์ตัวตน</div>
+            </div>
+            <div class="transform-item">
+                <div class="transform-name">esp-3des</div>
+                <div class="transform-description">ESP transform ใช้การเข้ารหัส 3DES(EDE) (168 bit)</div>
+            </div>
+        </div>
+        
+        <h3>ขั้นตอนการกำหนดค่า Transform Set</h3>
+        
+        <ol class="steps">
+            <li class="step">
+                <p>สร้าง transform set ชื่อ S2S-VPN บน R1 โดยใช้การเข้ารหัส AES 256 bit และฟังก์ชันแฮช SHA-256</p>
+                <div class="command">
+                    <span class="command-prompt">R1(config)#</span> <span class="command-input">crypto ipsec transform-set S2S-VPN esp-aes 256 esp-sha256-hmac</span><br>
+                    <span class="command-prompt">R1(cfg-crypto-trans)#</span> <span class="command-input">exit</span>
+                </div>
+            </li>
+            <li class="step">
+                <p>สร้าง transform set ชื่อ S2S-VPN บน R3 โดยใช้การเข้ารหัส AES 256 bit และฟังก์ชันแฮช SHA-256</p>
+                <div class="command">
+                    <span class="command-prompt">R3(config)#</span> <span class="command-input">crypto ipsec transform-set S2S-VPN esp-aes 256 esp-sha256-hmac</span><br>
+                    <span class="command-prompt">R3(cfg-crypto-trans)#</span> <span class="command-input">exit</span>
+                </div>
+            </li>
+        </ol>
+        
+        <div class="theory-box">
+            <h3>ESP vs AH ใน IPsec</h3>
+            <p>
+                <strong>ESP (Encapsulating Security Payload):</strong> ให้บริการทั้งการเข้ารหัส (confidentiality) และการตรวจสอบความถูกต้อง (authentication) ของข้อมูล ESP เข้ารหัสเพย์โหลดและให้ความปลอดภัยแบบ end-to-end
+            </p>
+            <p>
+                <strong>AH (Authentication Header):</strong> ให้บริการการตรวจสอบความถูกต้องและความสมบูรณ์ของข้อมูล แต่ไม่มีการเข้ารหัส AH ปกป้องทั้งส่วนหัวและเพย์โหลด IP แต่ไม่สามารถทำงานกับ NAT ได้
+            </p>
+            <p>
+                <strong>แนวทางปฏิบัติที่ดีที่สุด:</strong> แนะนำให้ใช้ ESP แทน AH ในสภาพแวดล้อมส่วนใหญ่ เนื่องจาก ESP มอบทั้งการเข้ารหัสและการตรวจสอบสิทธิ์ โดยเฉพาะอย่างยิ่งในสภาพแวดล้อมที่ใช้ NAT
+            </p>
+        </div>
+        
+        <h3>การกำหนดอายุการใช้งานความสัมพันธ์ด้านความปลอดภัย IPsec</h3>
+        
+        <p>
+            ค่าเริ่มต้นของอายุการใช้งานความสัมพันธ์ด้านความปลอดภัย IPsec คือ 3600 วินาที (1 ชั่วโมง) แต่สามารถเปลี่ยนแปลงได้ ในตัวอย่างนี้เราจะตั้งค่าให้เป็น 1800 วินาที (30 นาที) ซึ่งเป็นระยะเวลาที่สั้นลงเพื่อความปลอดภัยที่เพิ่มขึ้น
+        </p>
+        
+        <div class="command">
+            <span class="command-prompt">R1(config)#</span> <span class="command-input">crypto ipsec security-association lifetime seconds 1800</span>
+        </div>
+        
+        <div class="command">
+            <span class="command-prompt">R3(config)#</span> <span class="command-input">crypto ipsec security-association lifetime seconds 1800</span>
+        </div>
+        
+        <div class="note">
+            <p>
+                <strong>หมายเหตุ:</strong> การลดระยะเวลาของความสัมพันธ์ด้านความปลอดภัย (SA) ช่วยเพิ่มความปลอดภัยโดยบังคับให้มีการสร้างคีย์ใหม่บ่อยขึ้น แต่จะเพิ่มภาระการประมวลผลบนอุปกรณ์ ต้องสร้างสมดุลระหว่างความปลอดภัยและประสิทธิภาพตามความต้องการของเครือข่าย
+            </p>
+        </div>
+        
+        <h2>สรุปขั้นตอนที่ 2-3 ในการกำหนดค่า Site-to-Site VPN</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ขั้นตอน</th>
+                    <th>คำสั่ง</th>
+                    <th>จุดประสงค์</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>กำหนดค่า Pre-shared Key</td>
+                    <td><code>crypto isakmp key cisco123 address 64.100.x.x</code></td>
+                    <td>กำหนดคีย์ที่ใช้พิสูจน์ตัวตนระหว่างอุปกรณ์ปลายทางของ VPN</td>
+                </tr>
+                <tr>
+                    <td>สร้าง IPsec Transform Set</td>
+                    <td><code>crypto ipsec transform-set S2S-VPN esp-aes 256 esp-sha256-hmac</code></td>
+                    <td>กำหนดอัลกอริทึมการเข้ารหัสและการตรวจสอบสิทธิ์สำหรับข้อมูลที่ส่งผ่านอุโมงค์</td>
+                </tr>
+                <tr>
+                    <td>กำหนดอายุของ IPsec SA</td>
+                    <td><code>crypto ipsec security-association lifetime seconds 1800</code></td>
+                    <td>กำหนดระยะเวลาที่ความสัมพันธ์ด้านความปลอดภัยมีผลใช้งาน</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>ข้อแนะนำเพื่อความปลอดภัยสูงสุด</h3>
+        <ul>
+            <li>ใช้ pre-shared keys ที่ซับซ้อนและยาวอย่างน้อย 12 ตัวอักษร ประกอบด้วยตัวอักษรพิมพ์ใหญ่ พิมพ์เล็ก ตัวเลข และอักขระพิเศษ</li>
+            <li>พิจารณาใช้ใบรับรองดิจิทัลแทน pre-shared keys ในสภาพแวดล้อมขนาดใหญ่</li>
+            <li>ใช้อัลกอริทึมการเข้ารหัสที่แข็งแกร่งที่สุดที่อุปกรณ์รองรับ</li>
+            <li>ตั้งค่าอายุการใช้งานความสัมพันธ์ด้านความปลอดภัยให้สั้นลงตามความเหมาะสมกับระดับความปลอดภัยที่ต้องการ</li>
+            <li>หมั่นเปลี่ยน pre-shared keys เป็นประจำตามนโยบายความปลอดภัยขององค์กร</li>
+        </ul>
+    </div>
+</body>
+</html>

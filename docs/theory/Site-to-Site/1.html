@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สรุปการกำหนดค่า Site-to-Site VPN</title>
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #00529b;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #00529b;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #006699;
+            font-size: 22px;
+            margin-top: 25px;
+            border-left: 4px solid #006699;
+            padding-left: 10px;
+        }
+        h3 {
+            color: #0077cc;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        .theory-box {
+            background-color: #e6f3ff;
+            padding: 15px;
+            border-left: 5px solid #0077cc;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .command {
+            font-family: 'Courier New', monospace;
+            background-color: #333;
+            color: #fff;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #006699;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 5px solid #ffd600;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .highlight {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        .steps {
+            counter-reset: step-counter;
+            margin-left: 0;
+            padding-left: 0;
+        }
+        .step {
+            list-style-type: none;
+            margin-bottom: 15px;
+            padding-left: 35px;
+            position: relative;
+        }
+        .step:before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 25px;
+            height: 25px;
+            background-color: #006699;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>สรุปการกำหนดค่า Site-to-Site VPN โดยใช้ Crypto Maps</h1>
+
+        <div class="theory-box">
+            <h3>ทฤษฎีสำคัญเกี่ยวกับ IPsec VPN</h3>
+            <p>IPsec (Internet Protocol Security) เป็นชุดโปรโตคอลความปลอดภัยที่ออกแบบมาเพื่อรักษาความปลอดภัยการสื่อสารบนเครือข่าย IP โดยมีคุณสมบัติหลัก ได้แก่:</p>
+            <ul>
+                <li><strong>การเข้ารหัสข้อมูล (Confidentiality)</strong> - ป้องกันการดักจับข้อมูลโดยใช้การเข้ารหัสในการปกป้องข้อมูล</li>
+                <li><strong>ความสมบูรณ์ของข้อมูล (Integrity)</strong> - ตรวจสอบว่าข้อมูลไม่ถูกแก้ไขระหว่างการส่ง</li>
+                <li><strong>การพิสูจน์ตัวตน (Authentication)</strong> - ยืนยันว่าการสื่อสารเกิดขึ้นระหว่างคู่สื่อสารที่ถูกต้อง</li>
+                <li><strong>การป้องกันการดักข้อมูลซ้ำ (Anti-replay)</strong> - ป้องกันการส่งข้อมูลเดิมซ้ำโดยผู้ไม่ประสงค์ดี</li>
+            </ul>
+            <p>IPsec ดำเนินการในโหมด <strong>Tunnel</strong> (ห่อหุ้มแพ็กเก็ตทั้งหมด) หรือโหมด <strong>Transport</strong> (เข้ารหัสเฉพาะเพย์โหลด)</p>
+        </div>
+
+        <h2>องค์ประกอบหลักในการกำหนดค่า IPsec VPN</h2>
+        <p>การกำหนดค่า IPsec VPN มีองค์ประกอบหลักสองส่วน:</p>
+        <ol>
+            <li>การกำหนดค่าพารามิเตอร์ Internet Key Exchange (IKE)</li>
+            <li>การกำหนดค่าพารามิเตอร์ IPsec</li>
+        </ol>
+
+        <h2>ขั้นตอนที่ 1: การกำหนดค่า Internet Key Exchange (IKE)</h2>
+        <p>IKE เป็นโปรโตคอลที่ใช้ในการเจรจาและสร้างความสัมพันธ์ด้านความปลอดภัย (Security Association) ระหว่างอุปกรณ์ปลายทางของ VPN แบ่งเป็น 2 เฟส:</p>
+        
+        <div class="theory-box">
+            <h3>IKE Phase 1 และ Phase 2</h3>
+            <p><strong>IKE Phase 1</strong> - กำหนดวิธีการแลกเปลี่ยนคีย์ที่ใช้เพื่อแลกเปลี่ยนและตรวจสอบนโยบาย IKE ระหว่างเพียร์ สร้างช่องทางที่ปลอดภัยสำหรับการเจรจา Phase 2</p>
+            <p><strong>IKE Phase 2</strong> - เพียร์แลกเปลี่ยนและจับคู่นโยบาย IPsec สำหรับการตรวจสอบสิทธิ์และการเข้ารหัสข้อมูลทราฟฟิกจริง</p>
+        </div>
+
+        <h3>การเปิดใช้งาน IKE</h3>
+        <p>IKE ต้องเปิดใช้งานเพื่อให้ IPsec ทำงานได้ ตรวจสอบว่าเปิดใช้งานแล้วด้วยคำสั่ง:</p>
+        <div class="command">
+            Router(config)# crypto isakmp enable
+        </div>
+
+        <div class="note">
+            <p><strong>หมายเหตุ:</strong> หากคำสั่งนี้แสดงข้อผิดพลาด แสดงว่าอุปกรณ์ต้องได้รับการอัปเกรดเป็น IOS ที่มีคุณสมบัติการเข้ารหัสของ Cisco</p>
+        </div>
+
+        <h3>การตรวจสอบนโยบาย ISAKMP ที่มีอยู่</h3>
+        <div class="command">
+            Router# show crypto isakmp policy
+        </div>
+
+        <h3>การสร้างนโยบาย ISAKMP แบบกำหนดเอง</h3>
+        <div class="command">
+            Router(config)# crypto isakmp policy 10
+        </div>
+
+        <h3>พารามิเตอร์ของนโยบาย ISAKMP</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>พารามิเตอร์</th>
+                    <th>ตัวเลือก</th>
+                    <th>ค่าเริ่มต้น</th>
+                    <th>ค่าแนะนำ</th>
+                    <th>คำสั่ง</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>การเข้ารหัส<br>(encryption)</td>
+                    <td>des | 3des | aes | aes [128 | 192 | 256]</td>
+                    <td>des</td>
+                    <td>aes 256 (หรือสูงกว่า)</td>
+                    <td><code>encryption aes 256</code></td>
+                </tr>
+                <tr>
+                    <td>แฮช<br>(hash)</td>
+                    <td>md5 | sha | sha256 | sha384 | sha512</td>
+                    <td>sha</td>
+                    <td>sha256 (หรือสูงกว่า)</td>
+                    <td><code>hash sha256</code></td>
+                </tr>
+                <tr>
+                    <td>การตรวจสอบสิทธิ์<br>(authentication)</td>
+                    <td>pre-share | rsa-encr | rsa-sig</td>
+                    <td>rsa-sig</td>
+                    <td>ขึ้นอยู่กับการใช้งาน</td>
+                    <td><code>authentication pre-share</code></td>
+                </tr>
+                <tr>
+                    <td>กลุ่ม Diffie-Hellman<br>(group)</td>
+                    <td>1 | 2 | 5 | 14 | 15 | 16 | 19 | 20 | 24</td>
+                    <td>1</td>
+                    <td>14 (หรือสูงกว่า)</td>
+                    <td><code>group 14</code></td>
+                </tr>
+                <tr>
+                    <td>อายุการใช้งาน<br>(lifetime)</td>
+                    <td>60-86400 วินาที</td>
+                    <td>86400 (24 ชั่วโมง)</td>
+                    <td>ช่วงเวลาสั้น (เช่น 3600 วินาที)</td>
+                    <td><code>lifetime 3600</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="theory-box">
+            <h3>ความสำคัญของพารามิเตอร์แต่ละตัว</h3>
+            <ul>
+                <li><strong>การเข้ารหัส (Encryption)</strong> - กำหนดความเป็นส่วนตัวของช่องทางควบคุมระหว่างอุปกรณ์ปลายทาง โดย AES 256 ให้ความปลอดภัยสูงกว่า DES และ 3DES</li>
+                <li><strong>แฮช (Hash)</strong> - ควบคุมความสมบูรณ์ของข้อมูล ตรวจสอบว่าข้อมูลไม่ถูกแก้ไขระหว่างการส่ง SHA256 ให้ความปลอดภัยสูงกว่า MD5</li>
+                <li><strong>การตรวจสอบสิทธิ์ (Authentication)</strong> - ตรวจสอบว่าแพ็กเก็ตถูกส่งและลงนามโดยเพียร์ปลายทางที่ถูกต้อง</li>
+                <li><strong>กลุ่ม Diffie-Hellman (DH Group)</strong> - ใช้ในการสร้างคีย์ลับที่เพียร์ใช้ร่วมกันโดยไม่ต้องส่งผ่านเครือข่าย ตัวเลขกลุ่มที่สูงขึ้นให้ความปลอดภัยมากขึ้น แต่ใช้ทรัพยากรมากขึ้น</li>
+                <li><strong>อายุการใช้งาน (Lifetime)</strong> - ระยะเวลาที่การเชื่อมโยงความปลอดภัยมีผล ค่าที่น้อยลงจะปลอดภัยกว่าแต่ต้องทำการเจรจาบ่อยขึ้น</li>
+            </ul>
+        </div>
+
+        <h3>ตัวอย่างการกำหนดค่านโยบาย ISAKMP ที่แนะนำ</h3>
+        <div class="command">
+            Router(config)# crypto isakmp policy 10<br>
+            Router(config-isakmp)# encryption aes 256<br>
+            Router(config-isakmp)# hash sha256<br>
+            Router(config-isakmp)# authentication pre-share<br>
+            Router(config-isakmp)# group 14<br>
+            Router(config-isakmp)# lifetime 3600<br>
+            Router(config-isakmp)# exit
+        </div>
+
+        <h3>การตรวจสอบนโยบาย IKE</h3>
+        <div class="command">
+            Router# show crypto isakmp policy
+        </div>
+
+        <div class="note">
+            <p><span class="highlight">สำคัญ:</span> นโยบาย ISAKMP บนอุปกรณ์ทั้งสองต้องตรงกัน หากไม่ตรงกัน การเจรจา IKE จะล้มเหลวและไม่สามารถสร้างอุโมงค์ VPN ได้</p>
+        </div>
+
+        <h2>ข้อแนะนำด้านความปลอดภัย</h2>
+        <ul>
+            <li>ใช้อัลกอริทึมการเข้ารหัสและแฮชที่แข็งแกร่งที่สุดที่อุปกรณ์รองรับ</li>
+            <li>หลีกเลี่ยงการใช้ MD5 สำหรับแฮชเนื่องจากมีช่องโหว่ที่ทราบกันดี</li>
+            <li>ใช้กลุ่ม Diffie-Hellman 14 หรือสูงกว่า</li>
+            <li>ตั้งค่า lifetime ที่สั้นลงเพื่อความปลอดภัยที่เพิ่มขึ้น</li>
+            <li>เลือกประเภทการตรวจสอบสิทธิ์ตามความต้องการด้านความปลอดภัยขององค์กร</li>
+        </ul>
+
+        <h2>สรุปขั้นตอนการกำหนดค่า IKE</h2>
+        <ol class="steps">
+            <li class="step">ตรวจสอบว่า IKE เปิดใช้งานด้วยคำสั่ง <code>crypto isakmp enable</code></li>
+            <li class="step">ตรวจสอบนโยบายที่มีอยู่ด้วยคำสั่ง <code>show crypto isakmp policy</code></li>
+            <li class="step">สร้างนโยบายใหม่ด้วยคำสั่ง <code>crypto isakmp policy [number]</code></li>
+            <li class="step">กำหนดค่าพารามิเตอร์ของนโยบาย (encryption, hash, authentication, group, lifetime)</li>
+            <li class="step">ตรวจสอบนโยบายที่สร้างขึ้นมา</li>
+            <li class="step">ทำซ้ำขั้นตอนที่ 3-5 บนอุปกรณ์ปลายทางอีกเครื่อง โดยใช้พารามิเตอร์เดียวกัน</li>
+        </ol>
+    </div>
+</body>
+</html>
