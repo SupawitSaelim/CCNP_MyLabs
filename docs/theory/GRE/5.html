@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRE Tunnel - คู่มือฉบับสมบูรณ์</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #ef4444;
+            --light-bg: #f8fafc;
+            --dark-bg: #1e293b;
+            --text-color: #334155;
+            --light-text: #f1f5f9;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            color: var(--text-color);
+            line-height: 1.7;
+            background-color: var(--light-bg);
+            font-size: 16px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Sarabun', sans-serif;
+        }
+        
+        h1 {
+            font-size: 2.75rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            font-weight: 300;
+            font-size: 1.25rem;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary-color);
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+        
+        h3 {
+            margin: 1.75rem 0 1rem;
+            color: var(--secondary-color);
+            font-size: 1.35rem;
+            font-weight: 500;
+        }
+        
+        ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1.75rem;
+        }
+        
+        li {
+            margin-bottom: 0.85rem;
+        }
+        
+        .highlight {
+            background-color: rgba(244, 244, 67, 0.25);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-weight: 500;
+            color: var(--dark-bg);
+        }
+        
+        .packet-diagram-container {
+            margin: 2.5rem 0;
+        }
+        
+        .packet-diagram {
+            width: 100%;
+            min-height: 250px;
+            background-color: white;
+            position: relative;
+        }
+        
+        .packet-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .packet-row {
+            display: flex;
+            width: 100%;
+            min-height: 80px;
+        }
+        
+        .packet-cell {
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem 0.5rem;
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .tunnel-ip {
+            background-color: #dbeafe;
+            flex: 0 0 20%;
+        }
+        
+        .gre-flags {
+            background-color: #e0e7ff;
+            flex: 0 0 15%;
+        }
+        
+        .protocol-type {
+            background-color: #ede9fe;
+            flex: 0 0 15%;
+        }
+        
+        .ip-header {
+            background-color: #fae8ff;
+            flex: 0 0 20%;
+        }
+        
+        .transport-header {
+            background-color: #fce7f3;
+            flex: 0 0 15%;
+        }
+        
+        .data-cell {
+            background-color: #f0fdf4;
+            flex: 0 0 15%;
+        }
+        
+        .byte-size {
+            font-size: 0.75rem;
+            color: var(--dark-bg);
+            margin-top: 0.5rem;
+            opacity: 0.8;
+        }
+        
+        .packet-optional-row {
+            display: flex;
+            width: 100%;
+            min-height: 80px;
+            margin-top: 1.5rem;
+        }
+        
+        .packet-optional-header {
+            background-color: #9333ea;
+            color: white;
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            margin-top: 2rem;
+        }
+        
+        .checksum {
+            background-color: #f1f5f9;
+            flex: 1;
+        }
+        
+        .offset {
+            background-color: #e2e8f0;
+            flex: 1;
+        }
+        
+        .key {
+            background-color: #cbd5e1;
+            flex: 1;
+        }
+        
+        .sequence {
+            background-color: #94a3b8;
+            flex: 1;
+        }
+        
+        .packet-section {
+            display: flex;
+            margin-top: 0.5rem;
+        }
+        
+        .packet-section-label {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .key-concept {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .note {
+            background-color: rgba(16, 185, 129, 0.1);
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 5px solid var(--success-color);
+        }
+        
+        .warning-box {
+            background-color: rgba(239, 68, 68, 0.1);
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 5px solid var(--accent-color);
+        }
+        
+        .command {
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        
+        .command code {
+            color: #10b981;
+        }
+        
+        .arrow {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-color);
+            font-size: 1.2rem;
+        }
+        
+        .info-box {
+            background-color: rgba(59, 130, 246, 0.1);
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 5px solid var(--info-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>GRE Tunnel</h1>
+            <p class="subtitle">คู่มือฉบับสมบูรณ์สำหรับการเข้าใจและแก้ไขปัญหา</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <h2>องค์ประกอบของแพ็กเก็ต GRE Tunnel</h2>
+            <p>แพ็กเก็ตที่ถูกส่งผ่าน GRE Tunnel ประกอบด้วยองค์ประกอบหลักต่อไปนี้:</p>
+            
+            <ul>
+                <li><span class="highlight">Payload data:</span> ข้อมูลที่จะถูกส่งผ่านอุโมงค์</li>
+                <li><span class="highlight">Encapsulation header:</span> ระบุข้อมูลควบคุมเพิ่มเติมเกี่ยวกับ payload ที่กำลังส่ง หรือพฤติกรรมการ forwarding ที่จะถูกนำไปใช้กับแพ็กเก็ตเมื่อถูก decapsulation—หรือทั้งสองอย่าง</li>
+                <li><span class="highlight">Delivery or transport header:</span> ระบุวิธีการขนส่ง encapsulated payload ไปยังปลายทางอีกด้านของ tunnel</li>
+            </ul>
+            
+            <p>GRE ถูกออกแบบมาเพื่อให้อุปกรณ์ที่ใช้ network protocol หนึ่งสามารถสื่อสารผ่านเครือข่ายที่ใช้ network layer protocol อื่นได้ GRE tunnels มีข้อจำกัดและคุณลักษณะเฉพาะที่สำคัญหลายประการ</p>
+        </div>
+        
+        <div class="card">
+            <h2>คุณลักษณะและข้อจำกัดของ GRE Tunnel</h2>
+            <ul>
+                <li><span class="key-concept">Stateless tunnels:</span> Tunnel endpoint ไม่เก็บข้อมูลใดๆ เกี่ยวกับสถานะหรือความพร้อมใช้งานของ remote tunnel endpoint</li>
+                <li><span class="key-concept">Overhead อย่างน้อย 24 bytes:</span> รวมถึง IP header ใหม่ขนาด 20 bytes ซึ่งระบุ source และ destination IP addresses ของ GRE tunnel ส่วนที่เหลืออีก 4 bytes เป็นของ GRE header เอง</li>
+                <li><span class="key-concept">Multiprotocol และสามารถ tunnel โปรโตคอล OSI Layer 3 ใดก็ได้:</span> ใช้ฟิลด์ protocol type ใน GRE header เพื่อรองรับการ encapsulation ของโปรโตคอล OSI Layer 3 ใดก็ได้</li>
+                <li><span class="key-concept">Routing protocols ใน tunnel:</span> GRE อนุญาตให้ routing protocols (เช่น OSPF และ EIGRP) ถูก tunnel ผ่านการเชื่อมต่อได้</li>
+                <li><span class="key-concept">คุณสมบัติความปลอดภัยที่จำกัด:</span> ไม่มีกลไกการรักษาความลับ, การตรวจสอบแหล่งที่มาของข้อมูล หรือความสมบูรณ์ของข้อมูลที่แข็งแกร่งใน GRE อย่างไรก็ตาม GRE สามารถใช้ร่วมกับ IPsec เพื่อเพิ่มความปลอดภัยได้</li>
+                <li><span class="key-concept">Protocol:</span> GRE packets ที่ถูก encapsulate ภายใน IP ใช้ IP protocol type 47</li>
+            </ul>
+            
+            <div class="info-box">
+                <p>ด้วย GRE ขนาดแพ็กเก็ตที่ใหญ่ขึ้นเนื่องจาก header เพิ่มเติมอาจส่งผลให้ประสิทธิภาพเครือข่ายลดลง ถ้าแพ็กเก็ตมีขนาดใหญ่กว่า MTU (Maximum Transmission Unit) ที่อินเตอร์เฟซรองรับ เราเตอร์จะต้องทำการแบ่งแพ็กเก็ต (fragment) กระบวนการ fragmentation นี้สามารถทำให้เกิด CPU overhead ที่มีนัยสำคัญบนเราเตอร์ ซึ่งอาจส่งผลกระทบต่อการส่งต่อแพ็กเก็ตทั้งหมด</p>
+            </div>
+            
+            <div class="command">
+                ปรับ MTU บนอินเตอร์เฟซด้วยคำสั่ง: <code>ip mtu &lt;mtu&gt;</code>
+            </div>
+            
+            <div class="note">
+                <p>บางครั้ง ICMP messages อาจถูกบล็อกและต้องถูกส่งต่อจากโฮสต์เพื่อให้ path MTU ทำงานได้ ในกรณีนี้ คุณยังต้องปรับ TCP MSS (Maximum Segment Size) เพื่อป้องกัน TCP sessions ถูกหยุดชะงัก ทำได้โดยใช้คำสั่ง: <code>ip tcp adjust-mss &lt;mss value&gt;</code> สำหรับอินเตอร์เฟซนั้นๆ</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>GRE Packet Format</h2>
+            <div class="packet-diagram-container">
+                <div class="packet-header">GRE Packet Structure</div>
+                <div class="packet-diagram">
+                    <div class="packet-row">
+                        <div class="packet-cell tunnel-ip">
+                            Tunnel IP Header
+                            <div class="byte-size">20 bytes</div>
+                        </div>
+                        <div class="packet-cell gre-flags">
+                            GRE Flags
+                            <div class="byte-size">2 bytes</div>
+                        </div>
+                        <div class="packet-cell protocol-type">
+                            Protocol Type
+                            <div class="byte-size">2 bytes</div>
+                        </div>
+                        <div class="packet-cell ip-header">
+                            IP Header
+                        </div>
+                        <div class="packet-cell transport-header">
+                            Transport Header
+                        </div>
+                        <div class="packet-cell data-cell">
+                            Data
+                        </div>
+                    </div>
+                    <div class="packet-section">
+                        <div class="packet-section-label" style="flex: 3">Required GRE Header</div>
+                        <div class="packet-section-label" style="flex: 3">Original IP Header and Packet</div>
+                    </div>
+                </div>
+                
+                <div class="packet-optional-header">Optional GRE Header Fields</div>
+                <div class="packet-diagram">
+                    <div class="packet-optional-row">
+                        <div class="packet-cell checksum">
+                            Checksum
+                            <div class="byte-size">4 bytes</div>
+                        </div>
+                        <div class="packet-cell offset">
+                            Offset
+                            <div class="byte-size">4 bytes</div>
+                        </div>
+                        <div class="packet-cell key">
+                            Key
+                            <div class="byte-size">4 bytes</div>
+                        </div>
+                        <div class="packet-cell sequence">
+                            Sequence Number
+                            <div class="byte-size">4 bytes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <p>GRE tunnel สร้างเครือข่าย overlay บนเครือข่าย underlay ที่มีอยู่แล้ว โดยทั่วไป interface tunnel จะถูกกำหนด IP address ในเครือข่าย overlay ในขณะที่ source และ destination addresses ของ tunnel จะอยู่ในเครือข่าย underlay</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>การแก้ไขปัญหา GRE Tunnel</h2>
+            <p>ปัญหาทั่วไปที่อาจพบเมื่อใช้งาน GRE tunnels ได้แก่:</p>
+            
+            <div class="warning-box">
+                <ul>
+                    <li>GRE source IP address ไม่สามารถเข้าถึงได้จาก remote host</li>
+                    <li>GRE destination IP address ไม่สามารถเข้าถึงได้จาก local host</li>
+                    <li>Recursive routing (การวนลูปของเส้นทาง)</li>
+                </ul>
+            </div>
+            
+            <p>คำสั่งในการแก้ไขปัญหา GRE tunnels ที่ใช้บ่อย:</p>
+            
+            <div class="command">
+                <code>debug tunnel</code> - แสดงข้อมูลการ debug และเหตุการณ์ที่เกี่ยวข้องกับ tunnel อย่างรวดเร็ว
+            </div>
+            
+            <div class="command">
+                <code>debug tunnel packet</code> - แสดงข้อมูลการ debug แพ็กเก็ตและเหตุการณ์ที่เกี่ยวข้องกับ tunnel packets
+            </div>
+            
+            <div class="note">
+                <p>เมื่อตั้งค่า GRE tunnel ให้ตรวจสอบว่า:</p>
+                <ul>
+                    <li>MTU ตรงกันที่ทั้งสองฝั่งของ tunnel</li>
+                    <li>Routing ถูกต้อง - routing ควรมีเส้นทางที่เหมาะสมไปยัง tunnel endpoints</li>
+                    <li>ไม่มี access lists ที่บล็อก GRE traffic (protocol 47)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

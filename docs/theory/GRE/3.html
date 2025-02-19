@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คำสั่งตั้งค่า GRE Tunnels ด้วย Dynamic Routing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #2d3748;
+        }
+        
+        h1 {
+            color: #2c5282;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #4299e1;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #2b6cb0;
+            margin-top: 25px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #bee3f8;
+        }
+        
+        .command-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .command-box {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .router-label {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: #4a5568;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        
+        .comment {
+            color: #68d391;
+        }
+        
+        .command {
+            color: #a3bffa;
+        }
+        
+        .parameter {
+            color: #fbd38d;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #718096;
+        }
+        
+        .note {
+            background-color: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>คำสั่งตั้งค่า GRE Tunnels ด้วย Dynamic Routing</h1>
+    
+    <div class="topology-section">
+        <h2>Topology</h2>
+        <div class="topology-image">
+            <img src="/api/placeholder/860/500" alt="Network Topology" style="display: none;">
+            <svg viewBox="0 0 860 500" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background area -->
+                <rect x="20" y="50" width="820" height="330" rx="20" ry="20" fill="#f8edeb" stroke="#433" stroke-width="2" />
+                
+                <!-- OSPF Area 0 Label -->
+                <text x="430" y="250" font-size="24" font-weight="bold" text-anchor="middle">OSPF Area 0</text>
+                
+                <!-- GRE Tunnel area -->
+                <rect x="80" y="400" width="700" height="60" rx="30" ry="30" fill="#cfe2ff" stroke="#336" stroke-width="2" />
+                <text x="430" y="440" font-size="24" font-weight="bold" text-anchor="middle">GRE Tunnel</text>
+                
+                <!-- R1 Router -->
+                <g transform="translate(180, 270)">
+                    <ellipse cx="0" cy="0" rx="40" ry="20" fill="#2b6cb0" />
+                    <ellipse cx="0" cy="-8" rx="40" ry="20" fill="#3182ce" />
+                    <text x="0" y="-3" font-size="18" font-weight="bold" fill="white" text-anchor="middle">R1</text>
+                </g>
+                
+                <!-- R2 Router -->
+                <g transform="translate(430, 110)">
+                    <ellipse cx="0" cy="0" rx="40" ry="20" fill="#2b6cb0" />
+                    <ellipse cx="0" cy="-8" rx="40" ry="20" fill="#3182ce" />
+                    <text x="0" y="-3" font-size="18" font-weight="bold" fill="white" text-anchor="middle">R2</text>
+                </g>
+                
+                <!-- R3 Router -->
+                <g transform="translate(680, 270)">
+                    <ellipse cx="0" cy="0" rx="40" ry="20" fill="#2b6cb0" />
+                    <ellipse cx="0" cy="-8" rx="40" ry="20" fill="#3182ce" />
+                    <text x="0" y="-3" font-size="18" font-weight="bold" fill="white" text-anchor="middle">R3</text>
+                </g>
+                
+                <!-- Connections -->
+                <!-- R1 to R2 -->
+                <line x1="210" y1="245" x2="400" y2="130" stroke="#000" stroke-width="3" />
+                <!-- R2 to R3 -->
+                <line x1="460" y1="130" x2="650" y2="245" stroke="#000" stroke-width="3" />
+                
+                <!-- Loopback interfaces -->
+                <line x1="180" y1="290" x2="180" y2="330" stroke="#000" stroke-width="3" />
+                <line x1="680" y1="290" x2="680" y2="330" stroke="#000" stroke-width="3" />
+                
+                <!-- GRE tunnel -->
+                <line x1="180" y1="370" x2="180" y2="400" stroke="#000" stroke-width="3" />
+                <line x1="680" y1="370" x2="680" y2="400" stroke="#000" stroke-width="3" />
+                
+                <!-- IP Labels -->
+                <!-- R1-R2 Link -->
+                <text x="260" y="160" font-size="12" text-anchor="start">10.1.2.0/24</text>
+                <text x="260" y="175" font-size="12" text-anchor="start">2001:db8:acad:12::/64</text>
+                <text x="260" y="205" font-size="12" text-anchor="start">G0/0/0</text>
+                <text x="260" y="220" font-size="12" text-anchor="start">.1 / ::1</text>
+                
+                <!-- R2-R3 Link -->
+                <text x="580" y="160" font-size="12" text-anchor="end">10.2.3.0/24</text>
+                <text x="580" y="175" font-size="12" text-anchor="end">2001:db8:acad:23::/64</text>
+                <text x="580" y="205" font-size="12" text-anchor="end">G0/0/0</text>
+                <text x="580" y="220" font-size="12" text-anchor="end">.3 / ::3</text>
+                
+                <!-- R2 Interface Labels -->
+                <text x="400" y="125" font-size="12" text-anchor="end">G0/0/0</text>
+                <text x="400" y="140" font-size="12" text-anchor="end">.2 / ::2</text>
+                <text x="460" y="125" font-size="12" text-anchor="start">G0/0/1</text>
+                <text x="460" y="140" font-size="12" text-anchor="start">.2 / ::2</text>
+                
+                <!-- R1 Loopback -->
+                <text x="120" y="330" font-size="12" text-anchor="end">Loopback0: 192.168.1.1/24</text>
+                <text x="120" y="345" font-size="12" text-anchor="end">2001:db8:acad:1::1/64</text>
+                
+                <!-- R3 Loopback -->
+                <text x="740" y="330" font-size="12" text-anchor="start">Loopback0: 192.168.3.1/24</text>
+                <text x="740" y="345" font-size="12" text-anchor="start">2001:db8:acad:3::1/64</text>
+                
+                <!-- R1 Area 1 -->
+                <text x="120" y="400" font-size="12" text-anchor="end">Loopback1: 172.16.1.1/24</text>
+                <text x="120" y="415" font-size="12" text-anchor="end">2001:db8:acad:1721::1/64</text>
+                
+                <!-- R3 Area 1 -->
+                <text x="740" y="400" font-size="12" text-anchor="start">Loopback1: 172.16.3.1/24</text>
+                <text x="740" y="415" font-size="12" text-anchor="start">2001:db8:acad:1723::1/64</text>
+            </svg>
+        </div>
+    </div>
+    
+    <div class="command-section">
+        <h2>เตรียมการ (Underlay Network ด้วย Static Routes)</h2>
+        <div class="command-box">
+            <span class="comment"># สร้าง static routes</span><br>
+            <span class="command">ip route</span> <span class="parameter">0.0.0.0 0.0.0.0 [next-hop-address]</span><br>
+            <span class="command">ipv6 route</span> <span class="parameter">::/0 [next-hop-ipv6-address]</span>
+        </div>
+    </div>
+    
+    <div class="command-section">
+        <h2>GRE Tunnel สำหรับ IPv4</h2>
+        
+        <div class="router-label">Router R1</div>
+        <div class="command-box">
+            <span class="command">interface tunnel</span> <span class="parameter">0</span><br>
+            <span class="command">&nbsp;ip address</span> <span class="parameter">100.100.100.1 255.255.255.252</span><br>
+            <span class="command">&nbsp;bandwidth</span> <span class="parameter">4000</span><br>
+            <span class="command">&nbsp;ip mtu</span> <span class="parameter">1400</span><br>
+            <span class="command">&nbsp;tunnel source</span> <span class="parameter">loopback 0</span><br>
+            <span class="command">&nbsp;tunnel destination</span> <span class="parameter">192.168.3.1</span><br>
+            <br>
+            <span class="command">router ospf</span> <span class="parameter">4</span><br>
+            <span class="command">&nbsp;router-id</span> <span class="parameter">1.1.1.4</span><br>
+            <span class="command">&nbsp;network</span> <span class="parameter">100.100.100.0 0.0.0.3 area 0</span><br>
+            <span class="command">&nbsp;network</span> <span class="parameter">172.16.1.0 0.0.0.255 area 1</span>
+        </div>
+        
+        <div class="router-label">Router R3</div>
+        <div class="command-box">
+            <span class="command">interface tunnel</span> <span class="parameter">0</span><br>
+            <span class="command">&nbsp;ip address</span> <span class="parameter">100.100.100.2 255.255.255.252</span><br>
+            <span class="command">&nbsp;bandwidth</span> <span class="parameter">4000</span><br>
+            <span class="command">&nbsp;ip mtu</span> <span class="parameter">1400</span><br>
+            <span class="command">&nbsp;tunnel source</span> <span class="parameter">loopback 0</span><br>
+            <span class="command">&nbsp;tunnel destination</span> <span class="parameter">192.168.1.1</span><br>
+            <br>
+            <span class="command">router ospf</span> <span class="parameter">4</span><br>
+            <span class="command">&nbsp;router-id</span> <span class="parameter">3.3.3.4</span><br>
+            <span class="command">&nbsp;network</span> <span class="parameter">100.100.100.0 0.0.0.3 area 0</span><br>
+            <span class="command">&nbsp;network</span> <span class="parameter">172.16.3.0 0.0.0.255 area 1</span>
+        </div>
+    </div>
+    
+    <div class="command-section">
+        <h2>GRE Tunnel สำหรับ IPv6</h2>
+        
+        <div class="router-label">Router R1</div>
+        <div class="command-box">
+            <span class="command">interface tunnel</span> <span class="parameter">1</span><br>
+            <span class="command">&nbsp;ipv6 address</span> <span class="parameter">2001:db8:ffff::1/64</span><br>
+            <span class="command">&nbsp;bandwidth</span> <span class="parameter">4000</span><br>
+            <span class="command">&nbsp;tunnel source</span> <span class="parameter">loopback 0</span><br>
+            <span class="command">&nbsp;tunnel destination</span> <span class="parameter">2001:db8:acad:3::1</span><br>
+            <span class="command">&nbsp;tunnel mode</span> <span class="parameter">gre ipv6</span><br>
+            <br>
+            <span class="command">ipv6 router ospf</span> <span class="parameter">6</span><br>
+            <span class="command">&nbsp;router-id</span> <span class="parameter">1.1.1.6</span><br>
+            <br>
+            <span class="command">interface tunnel</span> <span class="parameter">1</span><br>
+            <span class="command">&nbsp;ipv6 ospf</span> <span class="parameter">6 area 0</span><br>
+            <br>
+            <span class="command">interface loopback</span> <span class="parameter">1</span><br>
+            <span class="command">&nbsp;ipv6 ospf</span> <span class="parameter">6 area 1</span>
+        </div>
+        
+        <div class="router-label">Router R3</div>
+        <div class="command-box">
+            <span class="command">interface tunnel</span> <span class="parameter">1</span><br>
+            <span class="command">&nbsp;ipv6 address</span> <span class="parameter">2001:db8:ffff::2/64</span><br>
+            <span class="command">&nbsp;bandwidth</span> <span class="parameter">4000</span><br>
+            <span class="command">&nbsp;tunnel source</span> <span class="parameter">loopback 0</span><br>
+            <span class="command">&nbsp;tunnel destination</span> <span class="parameter">2001:db8:acad:1::1</span><br>
+            <span class="command">&nbsp;tunnel mode</span> <span class="parameter">gre ipv6</span><br>
+            <br>
+            <span class="command">ipv6 router ospf</span> <span class="parameter">6</span><br>
+            <span class="command">&nbsp;router-id</span> <span class="parameter">3.3.3.6</span><br>
+            <br>
+            <span class="command">interface tunnel</span> <span class="parameter">1</span><br>
+            <span class="command">&nbsp;ipv6 ospf</span> <span class="parameter">6 area 0</span><br>
+            <br>
+            <span class="command">interface loopback</span> <span class="parameter">1</span><br>
+            <span class="command">&nbsp;ipv6 ospf</span> <span class="parameter">6 area 1</span>
+        </div>
+    </div>
+    
+    <div class="command-section">
+        <h2>คำสั่งตรวจสอบ</h2>
+        <div class="command-box">
+            <span class="comment"># ตรวจสอบ tunnel interface</span><br>
+            <span class="command">show interface tunnel</span> <span class="parameter">0</span><br>
+            <span class="command">show interface tunnel</span> <span class="parameter">1</span><br>
+            <br>
+            <span class="comment"># ตรวจสอบ routing table</span><br>
+            <span class="command">show ip route ospf</span><br>
+            <span class="command">show ipv6 route ospf</span><br>
+            <br>
+            <span class="comment"># ทดสอบการเชื่อมต่อ</span><br>
+            <span class="command">ping</span> <span class="parameter">172.16.3.1</span><br>
+            <span class="command">ping</span> <span class="parameter">2001:db8:acad:1723::1</span>
+        </div>
+    </div>
+    
+    <div class="note">
+        <strong>หมายเหตุ:</strong> ในการตั้งค่าจริง ให้แทนที่ [next-hop-address] และ [next-hop-ipv6-address] ด้วย IP address จริงของ next hop router
+    </div>
+    
+    <div class="footer">
+        การตั้งค่า GRE Tunnels - Cisco IOS Reference
+    </div>
+</body>
+</html>

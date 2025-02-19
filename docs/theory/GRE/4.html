@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การแก้ไขปัญหา Recursive Routing ใน GRE Tunnels</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0066cc;
+            --secondary-color: #0099ff;
+            --accent-color: #ff9900;
+            --background-color: #f0f7ff;
+            --text-color: #333;
+            --header-color: #003366;
+            --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+        }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 180px;
+            height: 180px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.2em;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-top: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        main {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .content-section {
+            background-color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: var(--header-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+            font-size: 1.6em;
+        }
+        
+        h3 {
+            color: var(--primary-color);
+            margin-top: 25px;
+            font-size: 1.3em;
+        }
+        
+        p {
+            margin-bottom: 1em;
+            font-size: 1.05em;
+        }
+        
+        .key-points {
+            background-color: #fff9e6;
+            border-left: 4px solid var(--accent-color);
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+        
+        .key-points h3 {
+            margin-top: 0;
+            color: #cc7700;
+        }
+        
+        .key-points ul {
+            margin-bottom: 0;
+        }
+        
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f0f0f0;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+        }
+        
+        .command {
+            color: #88ccff;
+        }
+        
+        .parameter {
+            color: #ffcc66;
+        }
+        
+        .comment {
+            color: #75cc75;
+            font-style: italic;
+        }
+        
+        .error {
+            color: #ff7777;
+        }
+        
+        .success {
+            color: #77dd77;
+        }
+        
+        .topology-container {
+            padding: 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+        }
+        
+        .diagram-wrapper {
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .sidebar {
+            position: sticky;
+            top: 20px;
+        }
+        
+        .timeline {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 20px;
+            border-left: 2px solid var(--secondary-color);
+        }
+        
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 0;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+        }
+        
+        .timeline-item.error::before {
+            background-color: #ff5555;
+        }
+        
+        .timeline-item.success::before {
+            background-color: #55cc55;
+        }
+        
+        .timeline-time {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .timeline-content {
+            padding-bottom: 10px;
+        }
+        
+        .best-practices {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .best-practice-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .best-practice-icon {
+            flex: 0 0 40px;
+            height: 40px;
+            background-color: #e6f4ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .recursive-animation {
+            width: 100%;
+            height: 350px;
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>การแก้ไขปัญหา Recursive Routing ใน GRE Tunnels</h1>
+            <div class="subtitle">เข้าใจและแก้ไขปัญหาการ Routing แบบวงวนในเครือข่าย Overlay</div>
+        </header>
+        
+        <main>
+            <div>
+                <section class="content-section">
+                    <h2>เข้าใจปัญหา Recursive Routing</h2>
+                    <p><strong>Recursive routing</strong> คือปัญหาที่เกิดขึ้นเมื่อ router พยายามใช้ interface ที่เป็นส่วนของ overlay network เพื่อไปถึง destination ของ tunnel นั้นเอง ซึ่งสร้างวงวนการ routing ที่ไม่สามารถแก้ไขได้</p>
+                    
+                    <div class="recursive-animation">
+                        <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background -->
+                            <rect width="600" height="300" fill="#f8fcff" />
+                            
+                            <!-- Devices -->
+                            <g id="router-r1">
+                                <rect x="50" y="130" width="100" height="40" rx="8" fill="#1a73e8" />
+                                <text x="100" y="155" text-anchor="middle" fill="white" font-weight="bold">R1</text>
+                            </g>
+                            
+                            <g id="router-r2">
+                                <rect x="250" y="50" width="100" height="40" rx="8" fill="#1a73e8" />
+                                <text x="300" y="75" text-anchor="middle" fill="white" font-weight="bold">R2</text>
+                            </g>
+                            
+                            <g id="router-r3">
+                                <rect x="450" y="130" width="100" height="40" rx="8" fill="#1a73e8" />
+                                <text x="500" y="155" text-anchor="middle" fill="white" font-weight="bold">R3</text>
+                            </g>
+                            
+                            <!-- Physical links -->
+                            <line x1="150" y1="150" x2="250" y2="70" stroke="#555" stroke-width="2" />
+                            <line x1="350" y1="70" x2="450" y2="150" stroke="#555" stroke-width="2" />
+                            
+                            <!-- Tunnel -->
+                            <path d="M 150,170 Q 300,240 450,170" stroke="#0066cc" stroke-width="3" stroke-dasharray="10,5" fill="none" />
+                            
+                            <!-- Loop animation for recursive routing -->
+                            <g>
+                                <circle id="packet1" cx="100" cy="170" r="6" fill="#ff5722">
+                                    <animate attributeName="cx" values="100;300;500;300;100" dur="4s" repeatCount="indefinite" />
+                                    <animate attributeName="cy" values="170;220;170;220;170" dur="4s" repeatCount="indefinite" />
+                                </circle>
+                                <circle id="packet2" cx="120" cy="170" r="6" fill="#ff9800">
+                                    <animate attributeName="cx" values="120;320;520;320;120" dur="4s" begin="1s" repeatCount="indefinite" />
+                                    <animate attributeName="cy" values="170;220;170;220;170" dur="4s" begin="1s" repeatCount="indefinite" />
+                                </circle>
+                            </g>
+                            
+                            <!-- Text labels -->
+                            <text x="100" y="220" text-anchor="middle">192.168.1.1</text>
+                            <text x="500" y="220" text-anchor="middle">192.168.3.1</text>
+                            <text x="300" y="250" text-anchor="middle" font-style="italic">GRE Tunnel</text>
+                            
+                            <!-- Error indication -->
+                            <g>
+                                <path d="M 290,150 L 310,150 L 300,130 Z" fill="#ff5555">
+                                    <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
+                                </path>
+                                <text x="300" y="175" text-anchor="middle" fill="#ff5555" font-size="10" font-weight="bold">
+                                    <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
+                                    Recursive Routing!
+                                </text>
+                            </g>
+                        </svg>
+                    </div>
+                    
+                    <h3>กรณีศึกษา: การกำหนดค่าที่ทำให้เกิดปัญหา</h3>
+                    <p>จากการทดลอง เมื่อเพิ่ม network statement สำหรับ tunnel source เข้าไปใน OSPF:</p>
+                    
+                    <div class="code-block">
+                        <span class="command">R1(config)#</span> <span class="command">router ospf</span> <span class="parameter">4</span><br>
+                        <span class="command">R1(config-router)#</span> <span class="command">network</span> <span class="parameter">192.168.1.0 0.0.0.255 area 0</span>
+                    </div>
+                    
+                    <p>สิ่งที่เกิดขึ้นคือ:</p>
+                    <ol>
+                        <li>R1 ประกาศเครือข่าย 192.168.1.0/24 (loopback 0) เข้าไปใน OSPF</li>
+                        <li>R3 จะเรียนรู้เส้นทางไปยัง 192.168.1.0/24 <strong>ผ่าน Tunnel0</strong></li>
+                        <li>เมื่อ R3 ต้องส่งแพ็กเก็ตกลับไปยัง 192.168.1.1 (tunnel source ของ R1) มันจะพยายามใช้ tunnel</li>
+                        <li>แต่ในการสร้าง tunnel packet, R3 ต้องหาเส้นทางไปยัง 192.168.1.1 ก่อน</li>
+                        <li>เกิดวงวน: ต้องการใช้ tunnel เพื่อส่งแพ็กเก็ต แต่การสร้าง tunnel ก็ต้องการเส้นทางไปยังปลายทาง</li>
+                    </ol>
+                </section>
+                
+                <section class="content-section">
+                    <h2>ผลลัพธ์ของปัญหา</h2>
+                    
+                    <div class="code-block">
+                        <span class="comment"># สิ่งที่เกิดขึ้นที่ R1</span><br>
+                        <span class="error">*Jan 24 18:49:17.345: %OSPF-5-ADJCHG: Process 4, Nbr 3.3.3.4 on Tunnel0 from FULL to DOWN, Neighbor Down: Dead timer expired</span><br>
+                        <span class="success">*Jan 24 18:49:45.422: %OSPF-5-ADJCHG: Process 4, Nbr 3.3.3.4 on Tunnel0 from LOADING to FULL, Loading Done</span><br>
+                        <span class="error">*Jan 24 18:50:25.620: %OSPF-5-ADJCHG: Process 4, Nbr 3.3.3.4 on Tunnel0 from FULL to DOWN, Neighbor Down: Dead timer expired</span><br><br>
+                        
+                        <span class="comment"># สิ่งที่เกิดขึ้นที่ R3</span><br>
+                        <span class="error">*Jan 27 00:02:56.654: %ADJ-5-PARENT: Midchain parent maintenance for IP midchain out of Tunnel0 - looped chain attempting to stack</span><br>
+                        <span class="error">*Jan 27 00:03:00.485: %TUN-5-RECURDOWN: Tunnel0 temporarily disabled due to recursive routing</span><br>
+                        <span class="error">*Jan 27 00:03:01.485: %LINEPROTO-5-UPDOWN: Line protocol on Interface Tunnel0, changed state to down</span><br>
+                        <span class="error">*Jan 27 00:03:01.486: %OSPF-5-ADJCHG: Process 4, Nbr 1.1.1.4 on Tunnel0 from FULL to DOWN, Neighbor Down: Interface down or detached</span>
+                    </div>
+                    
+                    <div class="key-points">
+                        <h3>ข้อสังเกตสำคัญ</h3>
+                        <ul>
+                            <li>OSPF adjacency จะทำงานๆ หยุดๆ (flapping)</li>
+                            <li>R3 แจ้งอย่างชัดเจนว่าพบ recursive routing</li>
+                            <li>Tunnel interface ถูกปิดชั่วคราวเพื่อป้องกันไม่ให้เกิดปัญหาวงวน</li>
+                        </ul>
+                    </div>
+                </section>
+                
+                <section class="content-section">
+                    <h2>การแก้ไขปัญหา</h2>
+                    <p>แก้ไขโดยการลบ network statement ที่เป็นสาเหตุออกจาก OSPF configuration:</p>
+                    
+                    <div class="code-block">
+                        <span class="command">R1(config)#</span> <span class="command">router ospf</span> <span class="parameter">4</span><br>
+                        <span class="command">R1(config-router)#</span> <span class="command">no network</span> <span class="parameter">192.168.1.0 0.0.0.255 area 0</span><br>
+                        <span class="command">R1(config-router)#</span> <span class="command">end</span><br>
+                        <span class="success">*Jan 24 18:54:29.439: %OSPF-5-ADJCHG: Process 4, Nbr 3.3.3.4 on Tunnel0 from LOADING to FULL, Loading Done</span>
+                    </div>
+                    
+                    <p>หลังจากลบ network statement ออกจาก OSPF:</p>
+                    <ol>
+                        <li>R3 จะไม่ได้รับการประกาศเส้นทางไปยัง 192.168.1.0/24 ผ่าน Tunnel0</li>
+                        <li>R3 จะเลือกใช้ underlay network (static route) เพื่อหาเส้นทางไปยัง 192.168.1.1</li>
+                        <li>ไม่เกิดวงวนในการ routing อีกต่อไป</li>
+                        <li>Tunnel กลับมาทำงานได้อย่างปกติ</li>
+                    </ol>
+                    
+                    <div class="topology-container">
+                        <h3>แผนภาพแสดงเส้นทางการส่งข้อมูลที่ถูกต้อง</h3>
+                        <div class="diagram-wrapper">
+                            <svg viewBox="0 0 600 250" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Physical Network -->
+                                <rect x="50" y="40" width="500" height="80" rx="10" fill="#f0f7ff" stroke="#0066cc" stroke-width="2" />
+                                <text x="300" y="25" text-anchor="middle" font-weight="bold" fill="#0066cc">Underlay Network (Static Routes)</text>
+                                
+                                <!-- Overlay Network -->
+                                <rect x="50" y="160" width="500" height="60" rx="10" fill="#e6f7e6" stroke="#00aa44" stroke-width="2" />
+                                <text x="300" y="235" text-anchor="middle" font-weight="bold" fill="#00aa44">Overlay Network (OSPF Area 0)</text>
+                                
+                                <!-- Routers -->
+                                <g>
+                                    <rect x="80" y="70" width="60" height="30" rx="5" fill="#1a73e8" />
+                                    <text x="110" y="90" text-anchor="middle" fill="white" font-weight="bold">R1</text>
+                                    <text x="110" y="110" text-anchor="middle" font-size="10">192.168.1.1</text>
+                                </g>
+                                
+                                <g>
+                                    <rect x="270" y="70" width="60" height="30" rx="5" fill="#1a73e8" />
+                                    <text x="300" y="90" text-anchor="middle" fill="white" font-weight="bold">R2</text>
+                                </g>
+                                
+                                <g>
+                                    <rect x="460" y="70" width="60" height="30" rx="5" fill="#1a73e8" />
+                                    <text x="490" y="90" text-anchor="middle" fill="white" font-weight="bold">R3</text>
+                                    <text x="490" y="110" text-anchor="middle" font-size="10">192.168.3.1</text>
+                                </g>
+                                
+                                <!-- Physical Connections -->
+                                <line x1="140" y1="85" x2="270" y2="85" stroke="#555" stroke-width="2" />
+                                <line x1="330" y1="85" x2="460" y2="85" stroke="#555" stroke-width="2" />
+                                
+                                <!-- GRE Tunnel -->
+                                <path d="M 110,180 C 300,140 300,220 490,180" stroke="#00aa44" stroke-width="3" stroke-dasharray="8,4" fill="none" />
+                                
+                                <!-- Data Flow Indicators - Underlay -->
+                                <g>
+                                    <circle cx="200" cy="78" r="4" fill="#ff9800">
+                                        <animate attributeName="cx" values="140;220;220;140" dur="3s" repeatCount="indefinite" />
+                                        <animate attributeName="opacity" values="0;1;1;0" dur="3s" repeatCount="indefinite" />
+                                    </circle>
+                                    <circle cx="400" cy="78" r="4" fill="#ff9800">
+                                        <animate attributeName="cx" values="330;410;410;330" dur="3s" begin="0.5s" repeatCount="indefinite" />
+                                        <animate attributeName="opacity" values="0;1;1;0" dur="3s" begin="0.5s" repeatCount="indefinite" />
+                                    </circle>
+                                </g>
+                                
+                                <!-- Data Flow Indicators - Overlay -->
+                                <g>
+                                    <circle cx="200" cy="180" r="4" fill="#4caf50">
+                                        <animate attributeName="cx" values="110;300;490" dur="2s" repeatCount="indefinite" />
+                                        <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
+                                    </circle>
+                                </g>
+                                
+                                <!-- Legend -->
+                                <g transform="translate(450, 20)">
+                                    <rect x="0" y="0" width="12" height="3" fill="#555" />
+                                    <text x="20" y="4" font-size="10">Physical Link</text>
+                                    
+                                    <path d="M 0,14 L 12,14" stroke="#00aa44" stroke-width="3" stroke-dasharray="3,2" fill="none" />
+                                    <text x="20" y="18" font-size="10">GRE Tunnel</text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <div class="sidebar">
+                <section class="timeline">
+                    <h3>ลำดับเหตุการณ์</h3>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-time">เริ่มต้น</div>
+                        <div class="timeline-content">
+                            GRE Tunnel ระหว่าง R1 และ R3 ทำงานปกติ โดยใช้ static routes สำหรับ underlay network
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item error">
+                        <div class="timeline-time">ขั้นตอนที่ 1</div>
+                        <div class="timeline-content">
+                            เพิ่ม network 192.168.1.0/24 เข้าไปใน OSPF บน R1
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item error">
+                        <div class="timeline-time">ขั้นตอนที่ 2</div>
+                        <div class="timeline-content">
+                            R3 เรียนรู้เส้นทางไปยัง 192.168.1.0/24 ผ่าน OSPF ซึ่งใช้ tunnel interface
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item error">
+                        <div class="timeline-time">ขั้นตอนที่ 3</div>
+                        <div class="timeline-content">
+                            OSPF adjacency เริ่มล้มเหลว และ tunnel ถูกปิดชั่วคราวเนื่องจากพบ recursive routing
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item success">
+                        <div class="timeline-time">ขั้นตอนที่ 4</div>
+                        <div class="timeline-content">
+                            ลบ network 192.168.1.0/24 ออกจาก OSPF บน R1
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item success">
+                        <div class="timeline-time">หลังแก้ไข</div>
+                        <div class="timeline-content">
+                            GRE Tunnel กลับมาทำงานได้ตามปกติ OSPF adjacency กลับมาเป็น FULL
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="best-practices">
+                    <h3>แนวทางปฏิบัติที่ดี</h3>
+                    
+                    <div class="best-practice-item">
+                        <div class="best-practice-icon">1</div>
+                        <div>
+                            <strong>แยก routing protocols</strong> ระหว่าง underlay และ overlay networks
+                        </div>
+                    </div>
+                    
+                    <div class="best-practice-item">
+                        <div class="best-practice-icon">2</div>
+                        <div>
+                            <strong>ไม่ประกาศ network ที่เป็น tunnel endpoints</strong> ในเส้นทางที่จะวิ่งผ่าน tunnel
+                        </div>
+                    </div>
+                    
+                    <div class="best-practice-item">
+                        <div class="best-practice-icon">3</div>
+                        <div>
+                            <strong>ใช้ static routes</strong> สำหรับ underlay network เพื่อป้องกัน recursive routing
+                        </div>
+                    </div>
+                    
+                    <div class="best-practice-item">
+                        <div class="best-practice-icon">4</div>
+                        <div>
+                            <strong>สังเกต error messages</strong> เมื่อเกิดปัญหากับ tunnel เพื่อตรวจหา recursive routing
+                        </div>
+                    </div>
+                    
+                    <div class="best-practice-item">
+                        <div class="best-practice-icon">5</div>
+                        <div>
+                            <strong>ตรวจสอบการทำงานของ OSPF neighbors</strong> และ interface status หลังการแก้ไข
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
