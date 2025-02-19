@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คำสั่งและทฤษฎีในการสร้าง GRE Tunnel</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Sarabun', sans-serif;
+        }
+        
+        body {
+            background-color: #f7f8fc;
+            color: #2d3748;
+        }
+        
+        .container {
+            max-width: 1200px;
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, #3182ce 0%, #805ad5 100%);
+        }
+        
+        .command-block {
+            background: #1a202c;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        
+        .command-block pre {
+            color: #e2e8f0;
+        }
+        
+        .comment {
+            color: #a0aec0;
+        }
+        
+        .command {
+            color: #90cdf4;
+        }
+        
+        .parameter {
+            color: #fbd38d;
+        }
+        
+        .value {
+            color: #68d391;
+        }
+        
+        .card {
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .concept-card {
+            border-left: 4px solid #3182ce;
+        }
+        
+        .warning-card {
+            border-left: 4px solid #e53e3e;
+        }
+    </style>
+</head>
+<body>
+    <header class="header-gradient text-white py-12">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-bold mb-4">คำสั่งและทฤษฎีในการสร้าง GRE Tunnel</h1>
+            <p class="text-xl opacity-90">เอกสารอ้างอิงสำหรับการกำหนดค่าและการแก้ไขปัญหา GRE</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-10">
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 pb-2 border-b-2 border-gray-200">ทฤษฎีเกี่ยวกับ GRE (Generic Routing Encapsulation)</h2>
+            
+            <p class="mb-6 text-lg">
+                GRE เป็นโปรโตคอลที่พัฒนาโดย Cisco ซึ่งใช้เพื่อสร้างทันเนลสำหรับส่งข้อมูลระหว่างเครือข่าย เป็นเทคโนโลยีที่ช่วยให้สามารถสร้างเครือข่ายซ้อนทับ (Overlay Network) บนเครือข่ายพื้นฐาน (Underlay Network) ที่มีอยู่เดิม
+            </p>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-10">
+                <div class="bg-white rounded-lg shadow-md p-6 concept-card card">
+                    <h3 class="text-xl font-semibold mb-4">1. หลักการทำงานของ GRE</h3>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>Encapsulation:</strong> ห่อหุ้มแพ็คเก็ตต้นทางด้วยเฮดเดอร์ GRE และ IP แล้วส่งผ่านเครือข่าย</li>
+                        <li><strong>Tunneling:</strong> สร้างการเชื่อมต่อเสมือนจุดต่อจุด (point-to-point) ระหว่างอุปกรณ์</li>
+                        <li><strong>Protocol-Agnostic:</strong> สามารถส่งข้อมูลได้หลากหลายโปรโตคอล เช่น IPv4, IPv6, IPX, AppleTalk ฯลฯ</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 concept-card card">
+                    <h3 class="text-xl font-semibold mb-4">2. โครงสร้าง GRE Header (4 bytes)</h3>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>C</strong> (Checksum Present bit): บ่งชี้ว่ามี checksum หรือไม่</li>
+                        <li><strong>R</strong> (Routing Present bit): บ่งชี้ว่ามีข้อมูลเส้นทางหรือไม่</li>
+                        <li><strong>K</strong> (Key Present bit): บ่งชี้ว่ามี key field หรือไม่</li>
+                        <li><strong>S</strong> (Sequence Number Present bit): บ่งชี้ว่ามีเลขลำดับหรือไม่</li>
+                        <li><strong>Protocol Type:</strong> ระบุประเภทของโปรโตคอลที่ห่อหุ้มอยู่ภายใน</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-md p-6 concept-card card">
+                    <h3 class="text-xl font-semibold mb-4">3. ข้อดีของ GRE</h3>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>สามารถส่งโปรโตคอลหลายประเภทผ่านทันเนลเดียว</li>
+                        <li>รองรับการส่ง multicast และ broadcast</li>
+                        <li>สนับสนุนการทำงานของโปรโตคอลเราท์ติ้ง เช่น OSPF, EIGRP</li>
+                        <li>การ setup ไม่ซับซ้อน</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 concept-card card">
+                    <h3 class="text-xl font-semibold mb-4">4. ข้อจำกัดของ GRE</h3>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>ไม่มีการเข้ารหัสข้อมูล (ต้องใช้ร่วมกับ IPsec หากต้องการความปลอดภัย)</li>
+                        <li>เพิ่ม overhead 24 bytes (GRE header 4 bytes + IP header 20 bytes)</li>
+                        <li>อาจเกิด recursive routing ทำให้ทันเนลล่ม</li>
+                        <li>เพิ่มภาระการประมวลผลให้กับอุปกรณ์เครือข่าย</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 pb-2 border-b-2 border-gray-200">คำสั่งสำหรับสร้าง GRE Tunnel พร้อมคำอธิบาย</h2>
+            
+            <div class="mb-12 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-blue-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">1. การสร้าง GRE Tunnel บน IPv4</h3>
+                </div>
+                <div class="command-block p-6">
+<pre><span class="comment">! สร้าง interface tunnel สำหรับ IPv4</span>
+<span class="command">interface</span> <span class="parameter">tunnel 0</span>
+  <span class="comment">! กำหนด IP address ให้กับ tunnel interface</span>
+  <span class="command">ip address</span> <span class="value">100.100.100.1 255.255.255.252</span>
+  <span class="comment">! กำหนดต้นทางของ tunnel (source) โดยใช้ Loopback0</span>
+  <span class="command">tunnel source</span> <span class="value">loopback 0</span>
+  <span class="comment">! กำหนดปลายทางของ tunnel (destination) ไปยัง IP 192.168.3.1</span>
+  <span class="command">tunnel destination</span> <span class="value">192.168.3.1</span>
+  <span class="comment">! กำหนดแบนด์วิดท์เพื่อใช้ในการคำนวณเส้นทาง</span>
+  <span class="command">bandwidth</span> <span class="value">4000</span>
+  <span class="comment">! กำหนด MTU สำหรับ tunnel เพื่อป้องกันการแบ่งแพ็คเก็ต</span>
+  <span class="command">ip mtu</span> <span class="value">1400</span></pre>
+                </div>
+            </div>
+            
+            <div class="mb-12 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-blue-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">2. การสร้าง GRE Tunnel บน IPv6</h3>
+                </div>
+                <div class="command-block p-6">
+<pre><span class="comment">! สร้าง interface tunnel สำหรับ IPv6</span>
+<span class="command">interface</span> <span class="parameter">tunnel 1</span>
+  <span class="comment">! กำหนด IPv6 address ให้กับ tunnel interface</span>
+  <span class="command">ipv6 address</span> <span class="value">2001:db8:ffff::1/64</span>
+  <span class="comment">! กำหนดต้นทางของ tunnel (source) โดยใช้ Loopback0</span>
+  <span class="command">tunnel source</span> <span class="value">loopback 0</span>
+  <span class="comment">! กำหนดปลายทางของ tunnel (destination) ไปยัง IPv6 2001:db8:acad:3::1</span>
+  <span class="command">tunnel destination</span> <span class="value">2001:db8:acad:3::1</span>
+  <span class="comment">! ระบุ mode ของ tunnel เป็น GRE over IPv6</span>
+  <span class="command">tunnel mode</span> <span class="value">gre ipv6</span>
+  <span class="comment">! เปิดใช้งาน Path MTU Discovery เพื่อหา MTU ที่เหมาะสม</span>
+  <span class="command">tunnel path-mtu-discovery</span>
+  <span class="comment">! กำหนดแบนด์วิดท์เพื่อใช้ในการคำนวณเส้นทาง</span>
+  <span class="command">bandwidth</span> <span class="value">4000</span></pre>
+                </div>
+            </div>
+            
+            <div class="mb-12 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-blue-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">3. การกำหนดเส้นทางสำหรับ GRE Tunnel (Static Route)</h3>
+                </div>
+                <div class="command-block p-6">
+<pre><span class="comment">! กำหนดเส้นทางสำหรับ IPv4 ผ่าน tunnel</span>
+<span class="command">ip route</span> <span class="value">172.16.3.0 255.255.255.0 tunnel 0</span>
+
+<span class="comment">! กำหนดเส้นทางสำหรับ IPv6 ผ่าน tunnel</span>
+<span class="command">ipv6 route</span> <span class="value">2001:db8:acad:1723::/64 tunnel 1</span></pre>
+                </div>
+            </div>
+            
+            <div class="mb-12 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-blue-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">4. การกำหนด OSPF บน GRE Tunnel</h3>
+                </div>
+                <div class="command-block p-6">
+<pre><span class="comment">! กำหนด OSPF process และ router-id</span>
+<span class="command">router ospf</span> <span class="value">4</span>
+  <span class="command">router-id</span> <span class="value">1.1.1.4</span>
+  <span class="comment">! เพิ่ม network ของ tunnel เข้าไปใน OSPF area 0</span>
+  <span class="command">network</span> <span class="value">100.100.100.0 0.0.0.3 area 0</span>
+  <span class="comment">! เพิ่ม network ที่ต้องการประกาศผ่าน tunnel เข้าไปใน OSPF area 1</span>
+  <span class="command">network</span> <span class="value">172.16.1.0 0.0.0.255 area 1</span></pre>
+                </div>
+            </div>
+            
+            <div class="mb-12 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-blue-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">5. การกำหนด OSPFv3 (สำหรับ IPv6) บน GRE Tunnel</h3>
+                </div>
+                <div class="command-block p-6">
+<pre><span class="comment">! กำหนด OSPFv3 process และ router-id</span>
+<span class="command">ipv6 router ospf</span> <span class="value">6</span>
+  <span class="command">router-id</span> <span class="value">1.1.1.6</span>
+
+<span class="comment">! เปิดใช้งาน OSPFv3 บน interface ที่ต้องการ</span>
+<span class="command">interface</span> <span class="parameter">tunnel 1</span>
+  <span class="command">ipv6 ospf</span> <span class="value">6 area 0</span>
+
+<span class="command">interface</span> <span class="parameter">loopback 1</span>
+  <span class="command">ipv6 ospf</span> <span class="value">6 area 1</span></pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 pb-2 border-b-2 border-gray-200">คำสั่งตรวจสอบและแก้ไขปัญหา GRE Tunnel</h2>
+            
+            <div class="mb-10 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-green-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">1. คำสั่งตรวจสอบสถานะ Tunnel</h3>
+                </div>
+                <div class="command-block p-6">
+<pre><span class="comment">! แสดงข้อมูลของ interface tunnel</span>
+<span class="command">show interface</span> <span class="parameter">tunnel 0</span>
+
+<span class="comment">! แสดงเส้นทาง OSPF ใน routing table</span>
+<span class="command">show ip route ospf</span>
+
+<span class="comment">! แสดงเส้นทาง OSPFv3 ใน IPv6 routing table</span>
+<span class="command">show ipv6 route ospf</span></pre>
+                </div>
+            </div>
+            
+            <div class="mb-10 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-red-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">2. การแก้ไขปัญหา Recursive Routing</h3>
+                </div>
+                <div class="command-block p-6">
+<pre><span class="comment">! ลบ network statement ที่ทำให้เกิด recursive routing</span>
+<span class="command">router ospf</span> <span class="value">4</span>
+  <span class="command">no network</span> <span class="value">192.168.1.0 0.0.0.255 area 0</span></pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 pb-2 border-b-2 border-gray-200">ปัญหาที่พบบ่อยใน GRE Tunnel</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-md p-6 warning-card">
+                    <h3 class="text-xl font-semibold mb-4">1. Recursive Routing</h3>
+                    <p class="mb-4">เกิดเมื่อเราเตอร์พยายามเข้าถึงปลายทางทันเนลผ่านทันเนลเอง</p>
+                    <div class="bg-red-50 p-3 rounded-md mb-4">
+                        <p class="text-red-600 font-medium">สังเกตข้อความ: <code class="bg-red-100 px-1">%TUN-5-RECURDOWN: Tunnel0 temporarily disabled due to recursive routing</code></p>
+                    </div>
+                    <p class="font-semibold">วิธีแก้:</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>ตรวจสอบให้แน่ใจว่าเส้นทางไปยังปลายทางทันเนลไม่ได้ผ่านทันเนลเอง</li>
+                        <li>ตรวจสอบ routing table ว่ามีเส้นทางไปยังปลายทางทันเนลโดยไม่ผ่านทันเนล</li>
+                        <li>ตรวจสอบ network statement ใน OSPF ว่าไม่ได้รวม tunnel endpoint</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 warning-card">
+                    <h3 class="text-xl font-semibold mb-4">2. MTU Issues</h3>
+                    <p class="mb-4">ปัญหาที่เกิดจากขนาด MTU ไม่เพียงพอ</p>
+                    <div class="bg-red-50 p-3 rounded-md mb-4">
+                        <p class="text-red-600 font-medium">สังเกต: แพ็คเก็ตขนาดใหญ่อาจถูกทิ้งหรือต้องมีการแบ่งแพ็คเก็ต</p>
+                    </div>
+                    <p class="font-semibold">วิธีแก้:</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>ปรับ MTU ของทันเนลให้เหมาะสม <code class="bg-gray-100 px-1">ip mtu 1400</code></li>
+                        <li>เปิดใช้ Path MTU Discovery <code class="bg-gray-100 px-1">tunnel path-mtu-discovery</code></li>
+                        <li>ตรวจสอบให้แน่ใจว่า MTU บนทุก link ตลอดเส้นทางมีขนาดเพียงพอ</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 warning-card">
+                    <h3 class="text-xl font-semibold mb-4">3. Control Plane Protection</h3>
+                    <p class="mb-4">ถ้ามีการเปิดใช้งาน Control Plane Protection อาจมีผลต่อ GRE</p>
+                    <p class="font-semibold">วิธีแก้:</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>ปรับแต่ง Control Plane Protection ให้อนุญาต GRE traffic</li>
+                        <li>เพิ่ม access-list เพื่ออนุญาต Protocol 47 (GRE)</li>
+                        <li>ตรวจสอบ firewall ระหว่างทาง ว่าอนุญาต GRE traffic</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 warning-card">
+                    <h3 class="text-xl font-semibold mb-4">4. Transport Network Issues</h3>
+                    <p class="mb-4">ปัญหาเครือข่ายพื้นฐานที่ใช้ส่ง GRE packets</p>
+                    <p class="font-semibold">วิธีแก้:</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>ตรวจสอบการเชื่อมต่อระหว่าง tunnel endpoints</li>
+                        <li>ใช้คำสั่ง <code class="bg-gray-100 px-1">ping</code> และ <code class="bg-gray-100 px-1">traceroute</code> เพื่อตรวจสอบเส้นทาง</li>
+                        <li>ตรวจสอบ ACL บนอุปกรณ์ระหว่างทางว่าไม่ได้บล็อก GRE traffic</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 pb-2 border-b-2 border-gray-200">การประยุกต์ใช้ GRE Tunnel</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <img src="https://info.pivitglobal.com/hs-fs/hubfs/Your%20Ultimate%20Guide%20to%20Site-to-Site%20VPN%20Technologies%20on%20Cisco%20ASA_Artboard%204.jpg?width=8001&height=4501&name=Your%20Ultimate%20Guide%20to%20Site-to-Site%20VPN%20Technologies%20on%20Cisco%20ASA_Artboard%204.jpg" alt="Site-to-Site VPN" class="w-full h-40 object-cover rounded-t-lg mb-4">
+                    <h3 class="text-xl font-semibold mb-3">1. Site-to-Site VPN</h3>
+                    <p>เชื่อมต่อเครือข่ายสาขาเข้าด้วยกันผ่านเครือข่ายสาธารณะ โดยอาจใช้ร่วมกับ IPsec เพื่อเพิ่มความปลอดภัย เหมาะสำหรับการเชื่อมต่อสำนักงานสาขาเข้ากับสำนักงานใหญ่</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <h3 class="text-xl font-semibold mb-3">2. Protocol Translation</h3>
+                    <p>เชื่อมต่อเครือข่าย IPv4 กับ IPv6 ทำให้สามารถสื่อสารระหว่างเครือข่ายที่ใช้โปรโตคอลต่างกันได้ เป็นวิธีการช่วยในการเปลี่ยนผ่านจาก IPv4 ไปสู่ IPv6</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <h3 class="text-xl font-semibold mb-3">3. Multicast over Non-Multicast Network</h3>
+                    <p>ส่ง multicast traffic ผ่านเครือข่ายที่ไม่รองรับ multicast เช่น ใช้ในการส่ง video streaming หรือ IPTV ระหว่างสาขาผ่านเครือข่าย ISP ที่ไม่รองรับ multicast</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <img src="https://cdn.networklessons.com/wp-content/uploads/2015/10/dmvpn-branch1-branch2-no-public-ip.png" alt="DMVPN" class="w-full h-40 object-cover rounded-t-lg mb-4">
+                    <h3 class="text-xl font-semibold mb-3">4. DMVPN (Dynamic Multipoint VPN)</h3>
+                    <p>ใช้ร่วมกับเทคโนโลยี NHRP เพื่อสร้างเครือข่ายแบบ dynamic hub-and-spoke ทำให้สาขาต่างๆ สามารถเชื่อมต่อถึงกันโดยตรงโดยไม่ต้องผ่าน hub เมื่อต้องการสื่อสาร</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <p class="text-center">เอกสารอ้างอิงสำหรับการกำหนดค่า GRE Tunnel บนอุปกรณ์ Cisco</p>
+            <p class="text-center text-gray-400 mt-2">© 2025 - สงวนลิขสิทธิ์</p>
+        </div>
+    </footer>
+</body>
+</html>

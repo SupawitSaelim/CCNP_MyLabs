@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>กระบวนการทำงานของ GRE Tunnel</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+        }
+
+        .packet-animation {
+            animation: packetMove 3s infinite;
+        }
+
+        @keyframes packetMove {
+            0% {
+                transform: translateX(0);
+            }
+
+            50% {
+                transform: translateX(20px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .step-card {
+            transition: all 0.3s ease;
+            border-left: 5px solid #3182ce;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .protocol-stack-item {
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .protocol-stack-item:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #3182ce;
+            transform: translateY(-50%);
+        }
+
+        .gre-header {
+            background: linear-gradient(135deg, #2c5282 0%, #2b6cb0 100%);
+        }
+
+        .packet-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .packet-layer {
+            border: 2px solid;
+            border-radius: 8px;
+            margin: 5px;
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .packet-layer:hover {
+            transform: scale(1.02);
+        }
+
+        .layer-eth {
+            border-color: #805ad5;
+            background-color: rgba(128, 90, 213, 0.1);
+        }
+
+        .layer-ip-outer {
+            border-color: #3182ce;
+            background-color: rgba(49, 130, 206, 0.1);
+        }
+
+        .layer-gre {
+            border-color: #ed8936;
+            background-color: rgba(237, 137, 54, 0.1);
+        }
+
+        .layer-ip-inner {
+            border-color: #38a169;
+            background-color: rgba(56, 161, 105, 0.1);
+        }
+
+        .layer-icmp {
+            border-color: #e53e3e;
+            background-color: rgba(229, 62, 62, 0.1);
+        }
+
+        .note-card {
+            border-left: 5px solid #ecc94b;
+            background-color: #fffff0;
+        }
+
+        .recursive-warning {
+            border-left: 5px solid #e53e3e;
+            background-color: #fff5f5;
+        }
+
+        .source-destination-box {
+            border: 2px dashed #4299e1;
+            background-color: rgba(66, 153, 225, 0.1);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="gre-header text-white py-12 shadow-lg">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-bold mb-4 text-center">กระบวนการทำงานของ GRE Tunnel</h1>
+            <p class="text-xl text-center opacity-90">เมื่อ Ping จาก Loopback1 R1 ไปยัง Loopback1 R3</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-10">
+        <!-- Network Diagram -->
+        <section class="mb-16 bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-6 text-center border-b-2 border-blue-300 pb-3">แผนผังเครือข่าย</h2>
+
+            <div class="flex justify-center">
+                <div class="relative w-full max-w-3xl">
+                    <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg" class="w-full">
+                        <!-- Background -->
+                        <rect x="0" y="0" width="800" height="300" fill="#f7fafc" rx="10" />
+
+                        <!-- Routers -->
+                        <g>
+                            <!-- R1 -->
+                            <circle cx="150" cy="150" r="50" fill="#2b6cb0" />
+                            <text x="150" y="150" text-anchor="middle" fill="white" font-size="24"
+                                font-weight="bold">R1</text>
+
+                            <!-- R2 -->
+                            <circle cx="400" cy="150" r="50" fill="#2b6cb0" />
+                            <text x="400" y="150" text-anchor="middle" fill="white" font-size="24"
+                                font-weight="bold">R2</text>
+
+                            <!-- R3 -->
+                            <circle cx="650" cy="150" r="50" fill="#2b6cb0" />
+                            <text x="650" y="150" text-anchor="middle" fill="white" font-size="24"
+                                font-weight="bold">R3</text>
+                        </g>
+
+                        <!-- Physical Connections -->
+                        <g stroke="#4a5568" stroke-width="3" stroke-linecap="round">
+                            <line x1="200" y1="150" x2="350" y2="150" />
+                            <line x1="450" y1="150" x2="600" y2="150" />
+                        </g>
+
+                        <!-- GRE Tunnel -->
+                        <path d="M 150 100 C 150 50, 650 50, 650 100" stroke="#ed8936" stroke-width="4"
+                            stroke-dasharray="10,5" fill="none" />
+                        <text x="400" y="40" text-anchor="middle" fill="#ed8936" font-size="16" font-weight="bold">GRE
+                            Tunnel</text>
+
+                        <!-- IP Addresses -->
+                        <g font-size="12">
+                            <!-- R1 Addresses -->
+                            <text x="80" y="90" fill="#4a5568">Lo0: 192.168.1.1</text>
+                            <text x="80" y="70" fill="#4a5568">Lo1: 172.16.1.1</text>
+                            <text x="210" y="140" fill="#4a5568">10.1.2.1</text>
+
+                            <!-- R2 Addresses -->
+                            <text x="340" y="140" fill="#4a5568">10.1.2.2</text>
+                            <text x="450" y="140" fill="#4a5568">10.2.3.2</text>
+
+                            <!-- R3 Addresses -->
+                            <text x="690" y="90" fill="#4a5568">Lo0: 192.168.3.1</text>
+                            <text x="690" y="70" fill="#4a5568">Lo1: 172.16.3.1</text>
+                            <text x="580" y="140" fill="#4a5568">10.2.3.3</text>
+                        </g>
+
+                        <!-- Interface Labels -->
+                        <g font-size="10" fill="#718096">
+                            <text x="180" y="170">G0/0/0</text>
+                            <text x="370" y="170">G0/0/0</text>
+                            <text x="430" y="170">G0/0/1</text>
+                            <text x="620" y="170">G0/0/0</text>
+                        </g>
+
+                        <!-- Tunnel Interface Labels -->
+                        <text x="110" y="90" fill="#ed8936" font-size="10">Tunnel0</text>
+                        <text x="690" y="90" fill="#ed8936" font-size="10">Tunnel0</text>
+
+                        <!-- Packet Animation -->
+                        <g class="packet-animation">
+                            <circle cx="400" cy="70" r="8" fill="#ed8936" />
+                            <path d="M 385 70 L 415 70" stroke="#ed8936" stroke-width="2" />
+                            <path d="M 405 60 L 415 70 L 405 80" fill="none" stroke="#ed8936" stroke-width="2" />
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Process Steps -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 text-center">ขั้นตอนกระบวนการทำงาน</h2>
+
+            <!-- Step 1 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8 step-card">
+                <div class="flex items-start">
+                    <div
+                        class="rounded-full bg-blue-500 text-white h-10 w-10 flex items-center justify-center text-xl font-bold flex-shrink-0">
+                        1</div>
+                    <div class="ml-6">
+                        <h3 class="text-2xl font-semibold mb-4">การตัดสินใจเลือกเส้นทาง (Routing Decision)</h3>
+                        <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                            <li>R1 ตรวจสอบเส้นทางใน routing table</li>
+                            <li>R1 พบว่าเส้นทางไปยัง 172.16.3.0/24 ต้องผ่าน interface Tunnel0</li>
+                            <li>CEF (Cisco Express Forwarding) จะค้นหา next-hop และ outgoing interface</li>
+                        </ul>
+
+                        <div class="mt-6 bg-gray-100 p-4 rounded-md">
+                            <p class="font-mono text-sm text-gray-800">
+                                R1# show ip route 172.16.3.1<br>
+                                Routing entry for 172.16.3.0/24<br>
+                                Known via "static", distance 1, metric 0<br>
+                                Routing Descriptor Blocks:<br>
+                                * directly connected, via Tunnel0<br>
+                                Route metric is 0, traffic share count is 1
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8 step-card">
+                <div class="flex items-start">
+                    <div
+                        class="rounded-full bg-blue-500 text-white h-10 w-10 flex items-center justify-center text-xl font-bold flex-shrink-0">
+                        2</div>
+                    <div class="ml-6">
+                        <h3 class="text-2xl font-semibold mb-4">การห่อหุ้มแพ็คเก็ต (Packet Encapsulation)</h3>
+                        <ul class="list-disc pl-5 space-y-2 text-gray-700 mb-6">
+                            <li>R1 สร้างแพ็คเก็ต ICMP Echo Request โดยมี:
+                                <ul class="list-disc pl-8 mt-2">
+                                    <li>Source IP: 172.16.1.1 (Loopback1 R1)</li>
+                                    <li>Destination IP: 172.16.3.1 (Loopback1 R3)</li>
+                                </ul>
+                            </li>
+                            <li>R1 เห็นว่าต้องส่งผ่าน Tunnel0 จึงห่อหุ้มแพ็คเก็ต ICMP ด้วย GRE header</li>
+                            <li>R1 เพิ่ม IP header ภายนอก (outer IP header) โดยมี:
+                                <ul class="list-disc pl-8 mt-2">
+                                    <li>Source IP: 192.168.1.1 (Loopback0 R1 - tunnel source)</li>
+                                    <li>Destination IP: 192.168.3.1 (Loopback0 R3 - tunnel destination)</li>
+                                    <li>Protocol: 47 (GRE)</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <div class="packet-wrapper mt-8 p-4 bg-gray-50 rounded-lg">
+                            <h4 class="text-lg font-semibold mb-4 text-center">โครงสร้างแพ็คเก็ตที่ถูกห่อหุ้ม</h4>
+                            <div class="packet-layer layer-eth">
+                                <div class="font-semibold">Ethernet Header</div>
+                                <div class="text-sm text-gray-600">Mac Address R1 → Mac Address R2</div>
+
+                                <div class="packet-layer layer-ip-outer">
+                                    <div class="font-semibold">IP Header (Outer)</div>
+                                    <div class="text-sm text-gray-600">Src: 192.168.1.1 | Dst: 192.168.3.1 | Proto: 47
+                                    </div>
+
+                                    <div class="packet-layer layer-gre">
+                                        <div class="font-semibold">GRE Header</div>
+                                        <div class="text-sm text-gray-600">Protocol Type: 0x0800 (IPv4)</div>
+
+                                        <div class="packet-layer layer-ip-inner">
+                                            <div class="font-semibold">IP Header (Inner)</div>
+                                            <div class="text-sm text-gray-600">Src: 172.16.1.1 | Dst: 172.16.3.1 |
+                                                Proto: 1</div>
+
+                                            <div class="packet-layer layer-icmp">
+                                                <div class="font-semibold">ICMP</div>
+                                                <div class="text-sm text-gray-600">Type: 8 (Echo Request) | Code: 0
+                                                </div>
+                                                <div class="text-sm text-gray-600">Data: Timestamp, Sequence Number...
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8 step-card">
+                <div class="flex items-start">
+                    <div
+                        class="rounded-full bg-blue-500 text-white h-10 w-10 flex items-center justify-center text-xl font-bold flex-shrink-0">
+                        3</div>
+                    <div class="ml-6">
+                        <h3 class="text-2xl font-semibold mb-4">การกำหนดเส้นทางแพ็คเก็ตห่อหุ้ม (Encapsulated Packet
+                            Routing)</h3>
+                        <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                            <li>R1 ตรวจสอบ routing table เพื่อหาเส้นทางไปยัง 192.168.3.1</li>
+                            <li>R1 พบว่าเส้นทางไปยัง 192.168.3.1 คือผ่าน G0/0/0 ไปยัง R2 (10.1.2.2)</li>
+                            <li>R1 ส่งแพ็คเก็ตที่ห่อหุ้มแล้วออกทาง G0/0/0 ไปยัง R2</li>
+                        </ul>
+
+                        <div class="mt-6 bg-gray-100 p-4 rounded-md">
+                            <p class="font-mono text-sm text-gray-800">
+                                R1# show ip route 192.168.3.1<br>
+                                Routing entry for 192.168.3.0/24<br>
+                                Known via "ospf 4", distance 110, metric 2, type intra area<br>
+                                Last update from 10.1.2.2 on GigabitEthernet0/0/0, 00:05:36 ago<br>
+                                Routing Descriptor Blocks:<br>
+                                * 10.1.2.2, from 2.2.2.4, 00:05:36 ago, via GigabitEthernet0/0/0<br>
+                                Route metric is 2, traffic share count is 1
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8 step-card">
+                <div class="flex items-start">
+                    <div
+                        class="rounded-full bg-blue-500 text-white h-10 w-10 flex items-center justify-center text-xl font-bold flex-shrink-0">
+                        4</div>
+                    <div class="ml-6">
+                        <h3 class="text-2xl font-semibold mb-4">การส่งผ่านโดย R2 (Transit Router)</h3>
+                        <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                            <li>R2 รับแพ็คเก็ตและตรวจสอบ destination IP (192.168.3.1)</li>
+                            <li>R2 ตรวจสอบ routing table และพบว่าต้องส่งไปยัง R3 ผ่าน G0/0/1</li>
+                            <li>R2 ไม่เปิดแพ็คเก็ต GRE เนื่องจากไม่ใช่ปลายทาง</li>
+                            <li>R2 ส่งแพ็คเก็ตต่อไปยัง R3 ผ่าน interface G0/0/1</li>
+                        </ul>
+
+                        <div class="mt-6 bg-blue-50 p-4 rounded-md border border-blue-100">
+                            <h4 class="text-lg font-semibold mb-2 text-blue-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1"
+                                    viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                ข้อสังเกต
+                            </h4>
+                            <p class="text-blue-600">
+                                R2 ทำหน้าที่เป็นเพียง transit router ไม่รู้ถึงข้อมูลภายใน GRE tunnel
+                                และทำการส่งต่อแพ็คเก็ตตามปกติโดยดูเฉพาะ IP header ภายนอกเท่านั้น คือ source 192.168.1.1
+                                และ destination 192.168.3.1
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8 step-card">
+                <div class="flex items-start">
+                    <div
+                        class="rounded-full bg-blue-500 text-white h-10 w-10 flex items-center justify-center text-xl font-bold flex-shrink-0">
+                        5</div>
+                    <div class="ml-6">
+                        <h3 class="text-2xl font-semibold mb-4">การเปิดห่อแพ็คเก็ตที่ R3 (Decapsulation)</h3>
+                        <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                            <li>R3 รับแพ็คเก็ตและเห็นว่า destination IP คือ 192.168.3.1 (Loopback0 ของตัวเอง)</li>
+                            <li>R3 ตรวจสอบว่ารูปแบบแพ็คเก็ตเป็น protocol 47 (GRE)</li>
+                            <li>R3 เปิดห่อ GRE header และพบว่าเป็น ICMP Echo Request</li>
+                            <li>R3 เห็นว่า destination ของแพ็คเก็ต ICMP คือ 172.16.3.1 (Loopback1 ของตัวเอง)</li>
+                        </ul>
+
+                        <div class="packet-wrapper mt-8 p-4 bg-gray-50 rounded-lg">
+                            <h4 class="text-lg font-semibold mb-2 text-center">กระบวนการ Decapsulation</h4>
+                            <div class="flex items-center justify-center mb-4">
+                                <div class="w-2/3 bg-gray-200 h-2 relative">
+                                    <div class="absolute left-0 -top-6 text-gray-600 text-sm">แพ็คเก็ตที่ได้รับ</div>
+                                    <div class="absolute right-0 -top-6 text-gray-600 text-sm">แพ็คเก็ตหลัง
+                                        Decapsulation</div>
+                                    <div class="absolute left-0 -bottom-6 text-gray-600 text-sm">มี GRE Header</div>
+                                    <div class="absolute right-0 -bottom-6 text-gray-600 text-sm">ไม่มี GRE Header</div>
+                                </div>
+                            </div>
+
+                            <div
+                                class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8 mt-8">
+                                <div class="border-2 border-blue-400 rounded-md p-4 bg-blue-50 w-full md:w-1/2">
+                                    <h5 class="font-semibold text-center mb-2 text-blue-700">แพ็คเก็ตก่อน Decapsulation
+                                    </h5>
+                                    <div class="text-sm space-y-2">
+                                        <p><span class="font-semibold">Outer Src IP:</span> 192.168.1.1</p>
+                                        <p><span class="font-semibold">Outer Dst IP:</span> 192.168.3.1</p>
+                                        <p><span class="font-semibold">Protocol:</span> 47 (GRE)</p>
+                                        <p class="border-t border-blue-200 pt-2 mt-2"><span class="font-semibold">GRE
+                                                Protocol Type:</span> 0x0800 (IPv4)</p>
+                                        <p><span class="font-semibold">Inner Src IP:</span> 172.16.1.1</p>
+                                        <p><span class="font-semibold">Inner Dst IP:</span> 172.16.3.1</p>
+                                        <p><span class="font-semibold">Inner Protocol:</span> 1 (ICMP)</p>
+                                        <p><span class="font-semibold">ICMP Type:</span> 8 (Echo)</p>
+                                    </div>
+                                </div>
+
+                                <div class="text-3xl text-blue-500 transform rotate-90 md:rotate-0">
+                                    →
+                                </div>
+
+                                <div class="border-2 border-green-400 rounded-md p-4 bg-green-50 w-full md:w-1/2">
+                                    <h5 class="font-semibold text-center mb-2 text-green-700">แพ็คเก็ตหลัง Decapsulation
+                                    </h5>
+                                    <div class="text-sm space-y-2">
+                                        <p><span class="font-semibold">Src IP:</span> 172.16.1.1</p>
+                                        <p><span class="font-semibold">Dst IP:</span> 172.16.3.1</p>
+                                        <p><span class="font-semibold">Protocol:</span> 1 (ICMP)</p>
+                                        <p><span class="font-semibold">ICMP Type:</span> 8 (Echo)</p>
+                                        <p><span class="font-semibold">ICMP Code:</span> 0</p>
+                                        <p><span class="font-semibold">ICMP Data:</span> Timestamp, Sequence...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8 step-card">
+                <div class="flex items-start">
+                    <div
+                        class="rounded-full bg-blue-500 text-white h-10 w-10 flex items-center justify-center text-xl font-bold flex-shrink-0">
+                        6</div>
+                    <div class="ml-6">
+                        <h3 class="text-2xl font-semibold mb-4">การตอบกลับ (Reply Process)</h3>
+                        <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                            <li>R3 สร้างแพ็คเก็ต ICMP Echo Reply โดยมี:
+                                <ul class="list-disc pl-8 mt-2">
+                                    <li>Source IP: 172.16.3.1 (Loopback1 R3)</li>
+                                    <li>Destination IP: 172.16.1.1 (Loopback1 R1)</li>
+                                </ul>
+                            </li>
+                            <li>R3 ตรวจสอบ routing table และพบว่าเส้นทางไปยัง 172.16.1.1 ต้องผ่าน Tunnel0</li>
+                            <li>กระบวนการห่อหุ้มและส่งกลับเกิดขึ้นเหมือนเดิมแต่ในทิศทางตรงกันข้าม</li>
+                        </ul>
+
+                        <div class="mt-8 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                            <h4 class="text-lg font-semibold mb-2 text-indigo-700 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                สรุปการตอบกลับ
+                            </h4>
+                            <p class="text-indigo-700 mb-4">
+                                กระบวนการตอบกลับจะเหมือนกับขั้นตอนที่ 1-5 แต่กลับทิศทาง โดย:
+                            </p>
+                            <ol class="list-decimal pl-5 space-y-1 text>
+                                <ol class=" list-decimal pl-5 space-y-1 text-indigo-600">
+                                <li>R3 จะสร้าง ICMP Echo Reply แทน Echo Request</li>
+                                <li>R3 จะห่อหุ้มด้วย GRE header โดยใช้ Source: 192.168.3.1, Destination: 192.168.1.1
+                                </li>
+                                <li>R3 ส่งแพ็คเก็ตไปยัง R1 ผ่าน R2</li>
+                                <li>R1 รับแพ็คเก็ต เปิดห่อ GRE และประมวลผล ICMP Echo Reply</li>
+                                <li>R1 ทราบว่าการ ping สำเร็จและแสดงผลลัพธ์</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Observations -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 text-center">ข้อสังเกตสำคัญ</h2>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Recursive Routing -->
+                <div class="bg-white rounded-lg shadow-md p-6 recursive-warning">
+                    <h3 class="text-xl font-semibold mb-4">1. Recursive Routing Check</h3>
+                    <p class="mb-4">Router ต้องตรวจสอบว่าเส้นทางไปยัง tunnel destination ไม่ได้อาศัย tunnel เอง</p>
+                    <div class="bg-red-50 p-3 rounded-md">
+                        <p class="text-red-600">หากเกิด recursive routing จะเห็นข้อความ:</p>
+                        <code
+                            class="block bg-red-100 p-2 rounded mt-2 text-red-800">%TUN-5-RECURDOWN: Tunnel0 temporarily disabled due to recursive routing</code>
+                    </div>
+                </div>
+
+                <!-- Protocol Stack -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">2. Protocol Stack</h3>
+                    <ul class="space-y-3">
+                        <li class="protocol-stack-item">Layer 2: Frame (Ethernet)</li>
+                        <li class="protocol-stack-item">Layer 3 (outer): IP (192.168.1.1 → 192.168.3.1)</li>
+                        <li class="protocol-stack-item">Layer 3.5: GRE</li>
+                        <li class="protocol-stack-item">Layer 3 (inner): IP (172.16.1.1 → 172.16.3.1)</li>
+                        <li class="protocol-stack-item">Layer 4: ICMP</li>
+                    </ul>
+                </div>
+
+                <!-- Overhead -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">3. Overhead</h3>
+                    <p class="mb-4">GRE เพิ่ม overhead 24 bytes:</p>
+                    <div class="flex items-center justify-center space-x-2">
+                        <div class="bg-blue-100 text-blue-800 p-3 rounded-md text-center">
+                            <p class="font-semibold">GRE Header</p>
+                            <p>4 bytes</p>
+                        </div>
+                        <span class="text-2xl">+</span>
+                        <div class="bg-green-100 text-green-800 p-3 rounded-md text-center">
+                            <p class="font-semibold">IP Header</p>
+                            <p>20 bytes</p>
+                        </div>
+                        <span class="text-2xl">=</span>
+                        <div class="bg-purple-100 text-purple-800 p-3 rounded-md text-center">
+                            <p class="font-semibold">Total Overhead</p>
+                            <p>24 bytes</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MTU Consideration -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">4. MTU Consideration</h3>
+                    <p class="mb-4">แพ็คเก็ตที่ห่อหุ้มอาจมีขนาดใหญ่เกินกว่า MTU ของ physical interface</p>
+                    <div class="bg-yellow-50 p-3 rounded-md">
+                        <h4 class="font-semibold text-yellow-700 mb-2">วิธีแก้ไขปัญหา MTU</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-yellow-800">
+                            <li>ลด MTU ของ tunnel interface: <code class="bg-yellow-100 px-1">ip mtu 1400</code></li>
+                            <li>เปิดใช้ Path MTU Discovery: <code
+                                    class="bg-yellow-100 px-1">tunnel path-mtu-discovery</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Source & Destination Importance -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 text-center">ความสำคัญของการกำหนด Source และ Destination ใน Tunnel</h2>
+
+            <div class="source-destination-box p-6 mb-8">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-blue-700">Source</h3>
+                        <p class="mb-4">บอกว่าจุดเริ่มต้นของทันเนลคือที่ไหน โดยระบุ IP address ที่ router
+                            จะใช้เป็นต้นทางเมื่อส่ง GRE packet</p>
+                        <div class="bg-blue-50 p-3 rounded-md text-blue-800">
+                            <code>tunnel source loopback 0</code>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-blue-700">Destination</h3>
+                        <p class="mb-4">บอกว่าจุดปลายทางของทันเนลคืออุปกรณ์ใด ที่ IP address ใด</p>
+                        <div class="bg-blue-50 p-3 rounded-md text-blue-800">
+                            <code>tunnel destination 192.168.3.1</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-2xl font-semibold mb-6 text-center border-b border-gray-200 pb-3">เหตุผลที่ต้องกำหนด
+                    Source และ Destination</h3>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div
+                            class="rounded-full bg-blue-100 text-blue-600 h-10 w-10 flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                            1</div>
+                        <h4 class="text-lg font-semibold mb-2 text-center">กำหนดจุดปลายทาง</h4>
+                        <p class="text-gray-700 text-center">ระบุจุดเริ่มต้นและปลายทางของทันเนลอย่างชัดเจน</p>
+                    </div>
+
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div
+                            class="rounded-full bg-blue-100 text-blue-600 h-10 w-10 flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                            2</div>
+                        <h4 class="text-lg font-semibold mb-2 text-center">สร้าง GRE Header</h4>
+                        <p class="text-gray-700 text-center">ใช้เป็น outer IP header ในการห่อหุ้มแพ็คเก็ต</p>
+                    </div>
+
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div
+                            class="rounded-full bg-blue-100 text-blue-600 h-10 w-10 flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                            3</div>
+                        <h4 class="text-lg font-semibold mb-2 text-center">ระบุเส้นทาง</h4>
+                        <p class="text-gray-700 text-center">ทำให้ router รู้ว่าต้องส่งแพ็คเก็ตไปที่ไหน</p>
+                    </div>
+
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div
+                            class="rounded-full bg-blue-100 text-blue-600 h-10 w-10 flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                            4</div>
+                        <h4 class="text-lg font-semibold mb-2 text-center">ป้องกัน Recursive Routing</h4>
+                        <p class="text-gray-700 text-center">ตรวจสอบว่ามีเส้นทางไปยัง destination โดยไม่ผ่าน tunnel</p>
+                    </div>
+
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div
+                            class="rounded-full bg-blue-100 text-blue-600 h-10 w-10 flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                            5</div>
+                        <h4 class="text-lg font-semibold mb-2 text-center">สร้างความสัมพันธ์</h4>
+                        <p class="text-gray-700 text-center">สร้างความสัมพันธ์แบบ point-to-point ระหว่างอุปกรณ์</p>
+                    </div>
+
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div
+                            class="rounded-full bg-blue-100 text-blue-600 h-10 w-10 flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                            6</div>
+                        <h4 class="text-lg font-semibold mb-2 text-center">ตรวจสอบความถูกต้อง</h4>
+                        <p class="text-gray-700 text-center">Router ปลายทางตรวจสอบว่าแพ็คเก็ต GRE มาจาก source
+                            ที่ถูกต้อง</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 p-4 bg-red-50 rounded-md border border-red-100">
+                    <h4 class="font-semibold text-red-700 mb-2">หากไม่กำหนด Source และ Destination:</h4>
+                    <ul class="list-disc pl-5 space-y-1 text-red-600">
+                        <li>Router จะไม่สามารถรู้ได้ว่าควรส่งแพ็คเก็ตไปที่ไหน</li>
+                        <li>ไม่สามารถสร้าง outer IP header ได้</li>
+                        <li>ไม่สามารถสร้างความสัมพันธ์แบบ point-to-point ได้</li>
+                        <li>ไม่สามารถตรวจสอบเส้นทางเพื่อป้องกัน recursive routing ได้</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>กระบวนการทำงานของ GRE Tunnel</p>
+            <p class="mt-2 text-gray-400">© 2025 - Network Engineering Documentation</p>
+        </div>
+    </footer>
+</body>
+
+</html>
