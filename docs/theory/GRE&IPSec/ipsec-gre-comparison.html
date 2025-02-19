@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>การเปรียบเทียบระหว่าง IPSec over GRE และ GRE over IPSec</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            font-family: 'Sarabun', sans-serif;
+        }
+        .diagram {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .comparison {
+            background-color: #e8f4f8;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        code {
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .image-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .explanation {
+            background-color: #fff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ความแตกต่างระหว่าง IPSec over GRE และ GRE over IPSec และข้อจำกัดของแต่ละวิธี</h1>
+
+        <h2>IPSec over GRE (Generic Routing Encapsulation)</h2>
+        <p>IPSec over GRE เป็นเทคโนโลยีที่ใช้ GRE ในการห่อหุ้มแพ็คเก็ตที่ถูกห่อหุ้มด้วย IPSec มาก่อนแล้ว</p>
+
+        <div class="image-container">
+            <img src="https://miro.medium.com/v2/resize:fit:720/format:webp/1*WENJI5jL4G9bygTov9YHzA.png" alt="IPSec over GRE diagram" />
+        </div>
+
+        <div class="diagram">
+            <pre>
+[แพ็คเก็ต IP ต้นฉบับ]
+          ↓
+          ↓
+[ส่วนหัว IPSec + แพ็คเก็ต IP ต้นฉบับ]
+          ↓
+          ↓
+[ส่วนหัว GRE + ส่วนหัว IPSec + แพ็คเก็ต IP ต้นฉบับ]
+            </pre>
+        </div>
+
+        <div class="explanation">
+            <h3>คำอธิบาย:</h3>
+            <p>IPSec over GRE ใช้การเข้ารหัส IPSec บนอินเตอร์เฟซแบบอุโมงค์ ระบบจะตรวจจับการไหลของข้อมูลที่ต้องการเข้ารหัสบนอินเตอร์เฟซแบบอุโมงค์ (มีการกำหนดค่า ACL เพื่อจับคู่การไหลของข้อมูลระหว่างเซกเมนต์เครือข่ายผู้ใช้สองส่วน)</p>
+            <p>แพ็คเก็ตที่ตรงกับ ACL จะถูกห่อหุ้มเป็นแพ็คเก็ต IPSec และจากนั้นเป็นแพ็คเก็ต GRE ก่อนที่จะถูกส่งผ่านอุโมงค์ แพ็คเก็ตที่ไม่ตรงกับ ACL จะถูกส่งผ่านอุโมงค์ GRE โดยตรงโดยไม่ถูกห่อหุ้มด้วย IPSec ซึ่งหมายความว่าแพ็คเก็ตเหล่านี้ไม่ได้ถูกส่งในลักษณะที่ปลอดภัย นอกจากนี้ อุโมงค์ GRE จะไม่ได้รับการป้องกันโดย IPSec ในขณะที่มีการตั้งค่า</p>
+        </div>
+
+        <h2>GRE over IPSec</h2>
+        <p>GRE over IPSec เป็นเทคโนโลยีที่ใช้ IPSec ในการห่อหุ้มแพ็คเก็ตที่ถูกห่อหุ้มด้วย GRE มาก่อนแล้ว</p>
+
+        <div class="image-container">
+            <img src="https://miro.medium.com/v2/resize:fit:720/format:webp/1*RtcrFLC0IO3tuL27_SEFew.png" alt="GRE over IPSec diagram" />
+        </div>
+
+        <div class="diagram">
+            <pre>
+[แพ็คเก็ต IP ต้นฉบับ]
+          ↓
+          ↓
+[ส่วนหัว GRE + แพ็คเก็ต IP ต้นฉบับ]
+          ↓
+          ↓
+[ส่วนหัว IPSec + ส่วนหัว GRE + แพ็คเก็ต IP ต้นฉบับ]
+            </pre>
+        </div>
+
+        <div class="explanation">
+            <h3>คำอธิบาย:</h3>
+            <p>GRE over IPSec ใช้การเข้ารหัส IPSec บนอินเตอร์เฟซทางกายภาพ ระบบจะตรวจจับการไหลของข้อมูล GRE ที่ต้องการเข้ารหัสบนอินเตอร์เฟซทางกายภาพ (มีการกำหนดค่า ACL เพื่อจับคู่การไหลของข้อมูล GRE ระหว่างเกตเวย์สองตัว) ด้วยวิธีนี้ การไหลของข้อมูลทั้งหมดที่ส่งผ่านอุโมงค์ GRE จะได้รับการป้องกันโดย IPSec และอุโมงค์ GRE ก็จะได้รับการป้องกันโดย IPSec ในขณะที่มีการตั้งค่าด้วย</p>
+            <p>GRE over IPSec รองรับการห่อหุ้มทั้งในโหมดอุโมงค์และโหมดขนส่ง โหมดอุโมงค์ใช้ส่วนหัว IPSec เพิ่มเติม ซึ่งเพิ่มขนาดแพ็คเก็ตและทำให้แพ็คเก็ตมีโอกาสแตกเป็นส่วนๆ มากขึ้น ดังนั้นจึงแนะนำให้ใช้โหมดขนส่ง</p>
+        </div>
+
+        <div class="comparison">
+            <h2>การเปรียบเทียบ:</h2>
+            <p>อุโมงค์ IPSec รองรับเฉพาะการห่อหุ้มและการเข้ารหัสแพ็คเก็ตแบบ unicast เท่านั้น ในขณะที่อุโมงค์ GRE รองรับการห่อหุ้มทั้งแพ็คเก็ตแบบ unicast และ multicast อย่างไรก็ตาม อุโมงค์ GRE ไม่ปลอดภัย ดังนั้น เราจึงต้องใช้ประโยชน์จากข้อดีของ IPSec และ GRE และสื่อสารระหว่างกันโดยใช้ IPSec over GRE หรือ GRE over IPSec</p>
+        </div>
+    </div>
+</body>
+</html>

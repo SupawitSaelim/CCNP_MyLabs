@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>คู่มือการกำหนดค่า GRE over IPsec</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        .theory-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .command-box {
+            background-color: #1a202c;
+            color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        .command-box code {
+            font-family: 'Consolas', monospace;
+            white-space: pre-wrap; /* บังคับให้ขึ้นบรรทัดใหม่ */
+            color: #fff;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .note {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #17a2b8;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>คู่มือการกำหนดค่า GRE over IPsec</h1>
+
+        <div class="theory-box">
+            <h2>ทฤษฎีพื้นฐาน</h2>
+            <h3>GRE over IPsec คืออะไร?</h3>
+            <p>GRE over IPsec เป็นเทคโนโลยีที่รวมข้อดีของทั้ง GRE และ IPsec เข้าด้วยกัน โดย:</p>
+            <ul>
+                <li>ใช้ GRE เพื่อรองรับการส่งข้อมูลแบบ multicast และ routing protocols</li>
+                <li>ใช้ IPsec เพื่อเพิ่มความปลอดภัยในการส่งข้อมูล</li>
+            </ul>
+
+            <h3>Mode Transport vs Mode Tunnel</h3>
+            <p>IPsec มี mode การทำงานสองแบบ:</p>
+            <table class="comparison-table">
+                <tr>
+                    <th>Transport Mode</th>
+                    <th>Tunnel Mode</th>
+                </tr>
+                <tr>
+                    <td>
+                        - เข้ารหัสเฉพาะส่วน payload<br>
+                        - ใช้ header IP เดิม<br>
+                        - เหมาะกับ GRE over IPsec<br>
+                        - ขนาดแพ็คเก็ตเล็กกว่า
+                    </td>
+                    <td>
+                        - เข้ารหัสทั้ง header IP และ payload<br>
+                        - สร้าง header IP ใหม่<br>
+                        - ใช้ทรัพยากรมากกว่า<br>
+                        - มีโอกาสที่แพ็คเก็ตจะแตกเป็นส่วนๆ (fragmentation)
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>วิธีการกำหนดค่า GRE over IPsec</h2>
+        <p>มีสองวิธีในการกำหนดค่า:</p>
+        <div class="note">
+            <h3>1. Crypto Maps (วิธีแบบดั้งเดิม)</h3>
+            <p>ขั้นตอนการกำหนดค่า:</p>
+            <div class="command-box">
+                <code>
+! 1. กำหนดค่า ISAKMP policy\n
+crypto isakmp policy 10
+ encryption aes 256
+ hash sha256
+ authentication pre-share
+ group 14
+ lifetime 3600
+
+! 2. กำหนด pre-shared key
+crypto isakmp key cisco123 address &lt;remote-peer-ip&gt;
+
+! 3. สร้าง transform set
+crypto ipsec transform-set GRE-VPN esp-aes 256 esp-sha256-hmac
+ mode transport
+
+! 4. สร้าง access list สำหรับ GRE traffic
+ip access-list extended GRE-VPN-ACL
+ permit gre host &lt;local-ip&gt; host &lt;remote-ip&gt;
+
+! 5. สร้างและใช้งาน crypto map
+crypto map GRE-CMAP 10 ipsec-isakmp
+ match address GRE-VPN-ACL
+ set transform-set GRE-VPN
+ set peer &lt;remote-ip&gt;
+
+interface G0/0/0
+ crypto map GRE-CMAP
+                </code>
+            </div>
+
+            <h3>2. Tunnel IPsec Profiles (วิธีแบบใหม่)</h3>
+            <p>ขั้นตอนการกำหนดค่า:</p>
+            <div class="command-box">
+                <code>
+! 1. กำหนดค่า ISAKMP policy (เหมือนวิธีแรก)
+! 2. กำหนด pre-shared key (เหมือนวิธีแรก)
+! 3. สร้าง transform set (เหมือนวิธีแรก)
+
+! 4. สร้าง IPsec profile
+crypto ipsec profile GRE-PROFILE
+ set transform-set GRE-VPN
+
+! 5. กำหนดค่า tunnel interface และใช้งาน profile
+interface Tunnel1
+ ip address &lt;tunnel-ip&gt; &lt;mask&gt;
+ tunnel source &lt;local-ip&gt;
+ tunnel destination &lt;remote-ip&gt;
+ tunnel protection ipsec profile GRE-PROFILE
+                </code>
+            </div>
+        </div>
+
+        <div class="note">
+            <h3>ข้อควรรู้</h3>
+            <ul>
+                <li>IPsec profiles เป็นวิธีที่แนะนำในปัจจุบัน เนื่องจากกำหนดค่าง่ายกว่า</li>
+                <li>ทั้งสองวิธีสามารถทำงานร่วมกันได้ (compatible)</li>
+                <li>การใช้ transport mode แทน tunnel mode ช่วยลดปัญหา fragmentation</li>
+                <li>ควรกำหนด MTU ที่เหมาะสมสำหรับ tunnel interface (เช่น 1400)</li>
+            </ul>
+        </div>
+
+        <div class="theory-box">
+            <h3>การทำงานของ GRE over IPsec</h3>
+            <p>1. แพ็คเก็ตถูกห่อหุ้มด้วย GRE header</p>
+            <p>2. แพ็คเก็ต GRE ถูกเข้ารหัสด้วย IPsec</p>
+            <p>3. สามารถส่ง routing protocols และ multicast traffic ผ่าน tunnel ได้</p>
+            <p>4. เมื่อใช้ transport mode, IPsec จะเข้ารหัสเฉพาะ GRE payload</p>
+        </div>
+    </div>
+</body>
+</html>
