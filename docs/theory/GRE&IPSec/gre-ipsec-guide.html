@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <title>คู่มือการกำหนดค่า GRE over IPsec</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         body {
             font-family: 'Sarabun', sans-serif;
@@ -14,18 +16,23 @@
             padding: 20px;
             background-color: #f5f7fa;
         }
+
         .container {
             background-color: white;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
         }
-        h1, h2, h3 {
+
+        h1,
+        h2,
+        h3 {
             color: #2c3e50;
             border-bottom: 2px solid #3498db;
             padding-bottom: 10px;
             margin-top: 30px;
         }
+
         .theory-box {
             background-color: #f8f9fa;
             border-left: 4px solid #3498db;
@@ -33,6 +40,7 @@
             margin: 20px 0;
             border-radius: 5px;
         }
+
         .command-box {
             background-color: #1a202c;
             color: #fff;
@@ -41,16 +49,20 @@
             margin: 20px 0;
             overflow-x: auto;
         }
+
         .command-box code {
             font-family: 'Consolas', monospace;
-            white-space: pre-wrap; /* บังคับให้ขึ้นบรรทัดใหม่ */
+            white-space: pre-wrap;
+            /* บังคับให้ขึ้นบรรทัดใหม่ */
             color: #fff;
         }
+
         .highlight {
             background-color: #fff3cd;
             padding: 2px 5px;
             border-radius: 3px;
         }
+
         .note {
             background-color: #e8f4f8;
             padding: 15px;
@@ -58,23 +70,60 @@
             margin: 15px 0;
             border-left: 4px solid #17a2b8;
         }
+
         .comparison-table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
         }
-        .comparison-table th, .comparison-table td {
+
+        .comparison-table th,
+        .comparison-table td {
             border: 1px solid #dee2e6;
             padding: 12px;
             text-align: left;
         }
+
         .comparison-table th {
             background-color: #f8f9fa;
         }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
+        <div class="navigation-buttons">
+            <a href="tunnel_mode.html" class="nav-button">Tunnel Mode</a>
+            <a href="gre-ipsec-guide.html" class="nav-button">GRE over IPsec</a>
+            <a href="ipsec-over-gre-guide.html" class="nav-button">IPsec over GRE</a>
+            <a href="ipsec-gre-comparison.html" class="nav-button">Comparison Types</a>
+        </div>
         <h1>คู่มือการกำหนดค่า GRE over IPsec</h1>
 
         <div class="theory-box">
@@ -188,4 +237,5 @@ interface Tunnel1
         </div>
     </div>
 </body>
+
 </html>

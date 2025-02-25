@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
@@ -14,12 +15,9 @@
             background-color: #f4f4f9;
             color: #333;
         }
-        header {
-            background-color: #0078d7;
-            color: white;
-            padding: 20px 10px;
-            text-align: center;
-        }
+
+       
+
         .container {
             max-width: 900px;
             margin: 20px auto;
@@ -28,122 +26,168 @@
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        h1, h2 {
+
+        h1,
+        h2 {
             color: #0078d7;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        table th, table td {
+
+        table th,
+        table td {
             border: 1px solid #ddd;
             padding: 10px;
             text-align: left;
         }
+
         table th {
             background-color: #0078d7;
             color: white;
         }
+
         table tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+
         code {
             background-color: #f4f4f4;
             padding: 2px 4px;
             border-radius: 4px;
             font-size: 90%;
         }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
+
 <body>
 
-<header>
-    <h1>GRE over IPSec - ทำไมต้องใช้ Transport Mode?</h1>
-</header>
 
-<div class="container">
-    <img src="https://yurmagccie.wordpress.com/wp-content/uploads/2019/01/ipsec-tunnel-transport.jpg" width="100%">
-    <h2>ความเข้าใจเกี่ยวกับ GRE over IPSec</h2>
-    <ul>
-        <li><strong>GRE Tunnels:</strong> ใช้กันอย่างแพร่หลายใน VPN เนื่องจากความเรียบง่ายและรองรับการส่งข้อมูลแบบ Broadcasting และ Multicasting แต่ไม่มีการเข้ารหัสข้อมูล</li>
-        <li><strong>IPSec:</strong> โปรโตคอลที่เพิ่มความปลอดภัยให้กับแพ็กเกจ IP ผ่านการเข้ารหัสและการตรวจสอบสิทธิ์</li>
-        <li><strong>GRE over IPSec:</strong> ผสมผสาน GRE และ IPSec เพื่อสร้าง VPN ที่ปลอดภัยและยืดหยุ่น</li>
-    </ul>
+    <div class="container">
+        <div class="navigation-buttons">
+            <a href="tunnel_mode.html" class="nav-button">Tunnel Mode</a>
+            <a href="gre-ipsec-guide.html" class="nav-button">GRE over IPsec</a>
+            <a href="ipsec-over-gre-guide.html" class="nav-button">IPsec over GRE</a>
+            <a href="ipsec-gre-comparison.html" class="nav-button">Comparison Types</a>
+        </div>
+        <img src="https://yurmagccie.wordpress.com/wp-content/uploads/2019/01/ipsec-tunnel-transport.jpg" width="100%">
+        <h2>ความเข้าใจเกี่ยวกับ GRE over IPSec</h2>
+        <ul>
+            <li><strong>GRE Tunnels:</strong> ใช้กันอย่างแพร่หลายใน VPN เนื่องจากความเรียบง่ายและรองรับการส่งข้อมูลแบบ
+                Broadcasting และ Multicasting แต่ไม่มีการเข้ารหัสข้อมูล</li>
+            <li><strong>IPSec:</strong> โปรโตคอลที่เพิ่มความปลอดภัยให้กับแพ็กเกจ IP ผ่านการเข้ารหัสและการตรวจสอบสิทธิ์
+            </li>
+            <li><strong>GRE over IPSec:</strong> ผสมผสาน GRE และ IPSec เพื่อสร้าง VPN ที่ปลอดภัยและยืดหยุ่น</li>
+        </ul>
 
-    <h2>ทำไมต้องใช้ Transport Mode?</h2>
-    <ul>
-        <li><strong>การห่อหุ้ม:</strong> Transport mode จะเข้ารหัสเฉพาะข้อมูลภายใน GRE โดยไม่เพิ่มส่วนหัว IP ซ้ำซ้อน</li>
-        <li><strong>หลีกเลี่ยงความซ้ำซ้อน:</strong> ลดการเพิ่มส่วนหัว IP ที่ไม่จำเป็นเมื่อเทียบกับ Tunnel mode</li>
-        <li><strong>ประสิทธิภาพ:</strong> มี overhead ต่ำกว่า Tunnel mode</li>
-    </ul>
+        <h2>ทำไมต้องใช้ Transport Mode?</h2>
+        <ul>
+            <li><strong>การห่อหุ้ม:</strong> Transport mode จะเข้ารหัสเฉพาะข้อมูลภายใน GRE โดยไม่เพิ่มส่วนหัว IP ซ้ำซ้อน
+            </li>
+            <li><strong>หลีกเลี่ยงความซ้ำซ้อน:</strong> ลดการเพิ่มส่วนหัว IP ที่ไม่จำเป็นเมื่อเทียบกับ Tunnel mode</li>
+            <li><strong>ประสิทธิภาพ:</strong> มี overhead ต่ำกว่า Tunnel mode</li>
+        </ul>
 
-    <h2>ตัวอย่างการกำหนดค่า</h2>
-    <p>คุณสามารถกำหนดค่า IPSec ให้ใช้ Transport mode ได้ดังนี้:</p>
-    <pre><code>crypto ipsec transform-set TS esp-3des esp-md5-hmac
+        <h2>ตัวอย่างการกำหนดค่า</h2>
+        <p>คุณสามารถกำหนดค่า IPSec ให้ใช้ Transport mode ได้ดังนี้:</p>
+        <pre><code>crypto ipsec transform-set TS esp-3des esp-md5-hmac
 R1(cfg-crypto-trans)# mode transport
 R1(cfg-crypto-trans)# exit
 </code></pre>
 
-    <h2>ข้อจำกัดของ Transport Mode</h2>
-    <ul>
-        <li><strong>NAT/PAT:</strong> ไม่สามารถใช้งานได้หากมี NAT หรือ PAT อยู่ในเส้นทางของอุโมงค์</li>
-        <li><strong>ข้อจำกัดของ Endpoint:</strong> จุดสิ้นสุดของ GRE และ crypto ต้องเหมือนกัน</li>
-    </ul>
+        <h2>ข้อจำกัดของ Transport Mode</h2>
+        <ul>
+            <li><strong>NAT/PAT:</strong> ไม่สามารถใช้งานได้หากมี NAT หรือ PAT อยู่ในเส้นทางของอุโมงค์</li>
+            <li><strong>ข้อจำกัดของ Endpoint:</strong> จุดสิ้นสุดของ GRE และ crypto ต้องเหมือนกัน</li>
+        </ul>
 
-    <h2>Tunnel Mode</h2>
-    <ul>
-        <li><strong>การห่อหุ้ม:</strong> ห่อหุ้มแพ็กเกจ GRE ทั้งหมด รวมถึงส่วนหัว IP ดั้งเดิม ทำให้ปลอดภัยมากขึ้น</li>
-        <li><strong>ภาระงาน:</strong> เพิ่ม overhead มากกว่า Transport mode อาจทำให้เกิด fragmentation ได้</li>
-    </ul>
+        <h2>Tunnel Mode</h2>
+        <ul>
+            <li><strong>การห่อหุ้ม:</strong> ห่อหุ้มแพ็กเกจ GRE ทั้งหมด รวมถึงส่วนหัว IP ดั้งเดิม ทำให้ปลอดภัยมากขึ้น
+            </li>
+            <li><strong>ภาระงาน:</strong> เพิ่ม overhead มากกว่า Transport mode อาจทำให้เกิด fragmentation ได้</li>
+        </ul>
 
-    <h2>ตารางเปรียบเทียบระหว่าง Transport Mode และ Tunnel Mode</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>ฟีเจอร์</th>
-                <th>Transport Mode</th>
-                <th>Tunnel Mode</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>การห่อหุ้ม</td>
-                <td>ส่วนหัว IP ของ GRE เปิดเผย</td>
-                <td>แพ็กเกจ GRE ทั้งหมดถูกห่อหุ้ม</td>
-            </tr>
-            <tr>
-                <td>ภาระงาน (Overhead)</td>
-                <td>ต่ำกว่า</td>
-                <td>สูงกว่า</td>
-            </tr>
-            <tr>
-                <td>NAT/PAT</td>
-                <td>ไม่รองรับ</td>
-                <td>รองรับ</td>
-            </tr>
-            <tr>
-                <td>Endpoint</td>
-                <td>จุดสิ้นสุดของ GRE และ crypto ต้องเหมือนกัน</td>
-                <td>ไม่มีข้อจำกัดนี้</td>
-            </tr>
-            <tr>
-                <td>ความปลอดภัย</td>
-                <td>น้อยกว่า (ส่วนหัว IP ของ GRE ไม่ถูกเข้ารหัส)</td>
-                <td>มากกว่า (แพ็กเกจ GRE ทั้งหมดถูกเข้ารหัส)</td>
-            </tr>
-            <tr>
-                <td>ความยืดหยุ่น</td>
-                <td>น้อยกว่า</td>
-                <td>มากกว่า</td>
-            </tr>
-        </tbody>
-    </table>
+        <h2>ตารางเปรียบเทียบระหว่าง Transport Mode และ Tunnel Mode</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ฟีเจอร์</th>
+                    <th>Transport Mode</th>
+                    <th>Tunnel Mode</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>การห่อหุ้ม</td>
+                    <td>ส่วนหัว IP ของ GRE เปิดเผย</td>
+                    <td>แพ็กเกจ GRE ทั้งหมดถูกห่อหุ้ม</td>
+                </tr>
+                <tr>
+                    <td>ภาระงาน (Overhead)</td>
+                    <td>ต่ำกว่า</td>
+                    <td>สูงกว่า</td>
+                </tr>
+                <tr>
+                    <td>NAT/PAT</td>
+                    <td>ไม่รองรับ</td>
+                    <td>รองรับ</td>
+                </tr>
+                <tr>
+                    <td>Endpoint</td>
+                    <td>จุดสิ้นสุดของ GRE และ crypto ต้องเหมือนกัน</td>
+                    <td>ไม่มีข้อจำกัดนี้</td>
+                </tr>
+                <tr>
+                    <td>ความปลอดภัย</td>
+                    <td>น้อยกว่า (ส่วนหัว IP ของ GRE ไม่ถูกเข้ารหัส)</td>
+                    <td>มากกว่า (แพ็กเกจ GRE ทั้งหมดถูกเข้ารหัส)</td>
+                </tr>
+                <tr>
+                    <td>ความยืดหยุ่น</td>
+                    <td>น้อยกว่า</td>
+                    <td>มากกว่า</td>
+                </tr>
+            </tbody>
+        </table>
 
-    <p><strong>สรุป:</strong> แม้ว่า Transport mode จะมี overhead ต่ำกว่า แต่ Tunnel mode มีความยืดหยุ่นและปลอดภัยมากกว่าในหลายสถานการณ์ เช่น การใช้งานร่วมกับ NAT/PAT หรือ endpoint ที่แตกต่างกัน ซึ่งเป็นเหตุผลที่ Tunnel mode เป็นค่าเริ่มต้นสำหรับ IPSec.</p>
+        <p><strong>สรุป:</strong> แม้ว่า Transport mode จะมี overhead ต่ำกว่า แต่ Tunnel mode
+            มีความยืดหยุ่นและปลอดภัยมากกว่าในหลายสถานการณ์ เช่น การใช้งานร่วมกับ NAT/PAT หรือ endpoint ที่แตกต่างกัน
+            ซึ่งเป็นเหตุผลที่ Tunnel mode เป็นค่าเริ่มต้นสำหรับ IPSec.</p>
 
-</div>
+        
+
+    </div>
 
 </body>
-</html>
 
+</html>

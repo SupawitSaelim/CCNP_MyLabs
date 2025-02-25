@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>คู่มือการกำหนดค่า IPsec over GRE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        .theory-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .command-box {
+            background-color: #1a202c;
+            color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .command-box code {
+            font-family: 'Consolas', monospace;
+            white-space: pre-wrap;
+            /* บังคับให้ขึ้นบรรทัดใหม่ */
+            color: #fff;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .note {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .comparison-table th {
+            background-color: #f8f9fa;
+        }
+
+        .warning {
+            background-color: #feecf0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="navigation-buttons">
+            <a href="tunnel_mode.html" class="nav-button">Tunnel Mode</a>
+            <a href="gre-ipsec-guide.html" class="nav-button">GRE over IPsec</a>
+            <a href="ipsec-over-gre-guide.html" class="nav-button">IPsec over GRE</a>
+            <a href="ipsec-gre-comparison.html" class="nav-button">Comparison Types</a>
+        </div>
+        <h1>คู่มือการกำหนดค่า IPsec over GRE</h1>
+
+        <div class="theory-box">
+            <h2>ทฤษฎีพื้นฐาน</h2>
+            <h3>IPsec over GRE คืออะไร?</h3>
+            <p>IPsec over GRE เป็นเทคโนโลยีที่ใช้ GRE tunnel เป็นพื้นฐานและเพิ่มการเข้ารหัสด้วย IPsec เข้าไปภายหลัง โดย:</p>
+            <ul>
+                <li>สร้าง GRE tunnel ระหว่างอุปกรณ์สองเครื่องก่อน</li>
+                <li>จากนั้นใช้ IPsec เพื่อเข้ารหัสเฉพาะข้อมูลที่ต้องการความปลอดภัยที่วิ่งผ่าน GRE tunnel</li>
+                <li>ข้อมูลอื่นๆ สามารถวิ่งผ่าน GRE tunnel โดยไม่ต้องเข้ารหัส</li>
+            </ul>
+
+            <h3>ความแตกต่างจาก GRE over IPsec</h3>
+            <table class="comparison-table">
+                <tr>
+                    <th>IPsec over GRE</th>
+                    <th>GRE over IPsec</th>
+                </tr>
+                <tr>
+                    <td>
+                        - เข้ารหัสเฉพาะข้อมูลที่เลือกในอุโมงค์ GRE<br>
+                        - ตั้งค่า GRE tunnel ก่อน แล้วค่อยใช้ IPsec policy<br>
+                        - สามารถเลือกเข้ารหัสเฉพาะข้อมูลบางส่วน<br>
+                        - GRE tunnel ไม่ได้รับการป้องกันขณะกำลังตั้งค่า
+                    </td>
+                    <td>
+                        - เข้ารหัสทุกข้อมูลที่วิ่งผ่านอุโมงค์ GRE<br>
+                        - ทำการห่อหุ้ม GRE packet แล้วเข้ารหัสด้วย IPsec<br>
+                        - ข้อมูลทั้งหมดที่ส่งผ่านอุโมงค์ได้รับการป้องกัน<br>
+                        - GRE tunnel ได้รับการป้องกันขณะกำลังตั้งค่า
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>วิธีการกำหนดค่า IPsec over GRE</h2>
+        <p>ขั้นตอนหลักในการกำหนดค่า:</p>
+        <div class="note">
+            <h3>ขั้นตอนการกำหนดค่า IPsec over GRE</h3>
+            <div class="command-box">
+                <code>
+! 1. กำหนดค่า GRE tunnel ก่อน
+interface Tunnel1
+ ip address &lt;tunnel-ip&gt; &lt;mask&gt;
+ tunnel source &lt;local-ip&gt;
+ tunnel destination &lt;remote-ip&gt;
+
+! 2. กำหนดค่า ISAKMP policy
+crypto isakmp policy 10
+ encryption aes 256
+ hash sha256
+ authentication pre-share
+ group 14
+ lifetime 3600
+
+! 3. กำหนด pre-shared key
+crypto isakmp key cisco123 address &lt;remote-peer-ip&gt;
+
+! 4. สร้าง transform set
+crypto ipsec transform-set IPSEC-TS esp-aes 256 esp-sha256-hmac
+ mode tunnel
+
+! 5. สร้าง access list สำหรับระบุข้อมูลที่ต้องการเข้ารหัส
+ip access-list extended ENCRYPT-ACL
+ permit ip &lt;private-network&gt; &lt;wildcard-mask&gt; &lt;remote-private-network&gt; &lt;wildcard-mask&gt;
+
+! 6. สร้างและใช้งาน crypto map บนอินเตอร์เฟซอุโมงค์
+crypto map IPSEC-MAP 10 ipsec-isakmp
+ match address ENCRYPT-ACL
+ set transform-set IPSEC-TS
+ set peer &lt;remote-ip&gt;
+
+interface Tunnel1
+ crypto map IPSEC-MAP
+                </code>
+            </div>
+        </div>
+
+        <div class="warning">
+            <h3>ข้อควรระวัง</h3>
+            <ul>
+                <li>ใน IPsec over GRE, อุโมงค์ GRE จะไม่ได้รับการป้องกันในขณะที่กำลังตั้งค่า ซึ่งอาจทำให้เกิดความเสี่ยงด้านความปลอดภัย</li>
+                <li>ข้อมูลที่ไม่ตรงกับ ACL ที่กำหนดจะถูกส่งผ่านอุโมงค์ GRE โดยไม่มีการเข้ารหัส</li>
+                <li>หากต้องการความปลอดภัยสูงสุด แนะนำให้ใช้ GRE over IPsec แทน</li>
+            </ul>
+        </div>
+
+        <div class="note">
+            <h3>ข้อควรรู้เพิ่มเติม</h3>
+            <ul>
+                <li>มักใช้ <span class="highlight">tunnel mode</span> สำหรับ transform set เนื่องจากเราต้องการเข้ารหัสทั้ง header และ payload ของแพ็คเก็ตที่ต้องการปกป้อง</li>
+                <li>สามารถใช้ ACL เพื่อกำหนดว่าข้อมูลใดที่ควรได้รับการเข้ารหัสและข้อมูลใดที่สามารถส่งผ่านแบบไม่มีการเข้ารหัส</li>
+                <li>ควรตรวจสอบให้แน่ใจว่า routing protocols ทำงานได้อย่างถูกต้องหลังจากตั้งค่า IPsec</li>
+            </ul>
+        </div>
+
+        <div class="theory-box">
+            <h3>การทำงานของ IPsec over GRE</h3>
+            <p>1. แพ็คเก็ต IP ต้นฉบับถูกตรวจสอบกับ ACL</p>
+            <p>2. หากตรงกับ ACL, แพ็คเก็ตจะถูกเข้ารหัสด้วย IPsec</p>
+            <p>3. แพ็คเก็ตที่เข้ารหัสแล้วถูกห่อหุ้มด้วย GRE header</p>
+            <p>4. แพ็คเก็ตที่ไม่ตรงกับ ACL จะถูกส่งผ่านอุโมงค์ GRE โดยตรงโดยไม่มีการเข้ารหัส</p>
+        </div>
+
+        <h3>ตัวอย่างสถานการณ์การใช้งาน</h3>
+        <div class="note">
+            <p>IPsec over GRE มักถูกใช้ในกรณีที่ต้องการ:</p>
+            <ul>
+                <li>ส่งข้อมูลที่ต้องการความปลอดภัยและไม่ต้องการความปลอดภัยผ่านอุโมงค์เดียวกัน</li>
+                <li>เข้ารหัสเฉพาะข้อมูลที่มีความสำคัญสูง</li>
+                <li>ลดภาระการประมวลผลของอุปกรณ์เนื่องจากไม่ต้องเข้ารหัสข้อมูลทั้งหมด</li>
+            </ul>
+        </div>
+
+    </div>
+</body>
+
+</html>
