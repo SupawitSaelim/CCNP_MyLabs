@@ -48,3 +48,4 @@ Each lab is taken from the official CCNP Enterprise training material. You can w
 - Each lab is independent, so you can start with whichever interests you most
 
 Happy learning! 🌟
+![CCNP Topo](/screenshots/image.png)
