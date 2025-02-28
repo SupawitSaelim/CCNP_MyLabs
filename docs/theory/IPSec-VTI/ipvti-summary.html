@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คำสั่งและทฤษฎีในการสร้าง IPsec VTI Site-to-Site VPN</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        body {
+            background-color: #f7f8fc;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, #3182ce 0%, #805ad5 100%);
+        }
+
+        .command-block {
+            background: #1a202c;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .command-block pre {
+            color: #e2e8f0;
+        }
+
+        .comment {
+            color: #a0aec0;
+        }
+
+        .command {
+            color: #90cdf4;
+        }
+
+        .parameter {
+            color: #fbd38d;
+        }
+
+        .value {
+            color: #68d391;
+        }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .concept-card {
+            border-left: 4px solid #3182ce;
+        }
+
+        .warning-card {
+            border-left: 4px solid #e53e3e;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header-gradient text-white py-12">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-bold mb-4">คำสั่งและทฤษฎีในการสร้าง IPsec VTI Site-to-Site VPN</h1>
+            <p class="text-xl opacity-90">เอกสารอ้างอิงสำหรับการกำหนดค่าและการแก้ไขปัญหา IPsec VTI</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-10">
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 pb-2 border-b-2 border-gray-200">ทฤษฎีเกี่ยวกับ IPsec VTI (Virtual Tunnel
+                Interface)</h2>
+
+            <p class="mb-6 text-lg">
+                IPsec VTI เป็นเทคโนโลยีที่ใช้สร้างทันเนลแบบเสมือนสำหรับการเชื่อมต่อแบบ Site-to-Site VPN
+                แบบความปลอดภัยสูง โดยสามารถรองรับการทำงานร่วมกับโปรโตคอลเราท์ติ้งได้โดยไม่ต้องเพิ่ม GRE header 4 bytes
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-10">
+                <div class="bg-white rounded-lg shadow-md p-6 concept-card card">
+                    <h3 class="text-xl font-semibold mb-4">1. ข้อดีของ IPsec VTI</h3>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>ง่ายกว่า GRE over IPsec:</strong> มีการกำหนดค่าที่เรียบง่ายและมีประสิทธิภาพมากกว่า
+                        </li>
+                        <li><strong>ประหยัดแบนด์วิดท์:</strong> ไม่ต้องใช้ GRE header 4 bytes ทำให้ประหยัดแบนด์วิดท์
+                        </li>
+                        <li><strong>รองรับ Dynamic Routing:</strong> สามารถใช้งานโปรโตคอลเราท์ติ้งแบบไดนามิกได้</li>
+                        <li><strong>Always-on Access:</strong> เหมาะสำหรับการเชื่อมต่อแบบถาวรระหว่างไซต์</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 concept-card card">
+                    <h3 class="text-xl font-semibold mb-4">2. ประเภทของ IPsec VTI</h3>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>Static VTIs (SVTIs):</strong> ใช้สำหรับการเชื่อมต่อแบบ site-to-site
+                            เพื่อให้มีการเข้าถึงแบบถาวรระหว่างสองไซต์</li>
+                        <li><strong>Dynamic VTIs (DVTIs):</strong> ให้การเชื่อมต่อที่ปลอดภัยและขยายขนาดได้สำหรับ
+                            remote-access VPNs แทนที่ dynamic crypto maps</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-md p-6 concept-card card">
+                    <h3 class="text-xl font-semibold mb-4">3. ความแตกต่างจากเทคโนโลยีอื่น</h3>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>ไม่จำเป็นต้องใช้ ACL (Access Control List) เหมือนกับ crypto maps</li>
+                        <li>มีประสิทธิภาพมากกว่า GRE over IPsec เนื่องจากไม่มี overhead ของ GRE header</li>
+                        <li>สามารถทำงานร่วมกับโปรโตคอลเราท์ติ้งได้ (ต่างจาก IPsec VPN ทั่วไปที่รองรับเฉพาะ unicast
+                            traffic)</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 concept-card card">
+                    <h3 class="text-xl font-semibold mb-4">4. องค์ประกอบที่จำเป็น</h3>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>การกำหนดค่า ISAKMP policy และ pre-shared key</li>
+                        <li>การกำหนดค่า Transform set</li>
+                        <li>การกำหนดค่า IPsec profile</li>
+                        <li>การกำหนดค่า Tunnel interface ด้วย mode ipsec ipv4</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 pb-2 border-b-2 border-gray-200">คำสั่งสำหรับสร้าง IPsec VTI
+                พร้อมคำอธิบาย</h2>
+
+            <div class="mb-12 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-blue-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">1. การกำหนดค่า ISAKMP Policy และ Pre-shared Key</h3>
+                </div>
+                <div class="command-block p-6">
+                    <pre><span class="comment">! กำหนดค่า ISAKMP policy</span>
+<span class="command">crypto isakmp policy</span> <span class="value">10</span>
+  <span class="command">encryption</span> <span class="value">aes 256</span>
+  <span class="command">hash</span> <span class="value">sha256</span>
+  <span class="command">authentication</span> <span class="value">pre-share</span>
+  <span class="command">group</span> <span class="value">14</span>
+  <span class="command">lifetime</span> <span class="value">3600</span>
+
+<span class="comment">! กำหนดค่า pre-shared key (ใส่ที่อยู่ IP ของปลายทาง)</span>
+<span class="command">crypto isakmp key</span> <span class="value">cisco123 address 64.100.1.2</span></pre>
+                </div>
+            </div>
+
+            <div class="mb-12 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-blue-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">2. การกำหนดค่า Transform Set และ Tunnel Mode</h3>
+                </div>
+                <div class="command-block p-6">
+                    <pre><span class="comment">! สร้าง transform set และกำหนด encryption และ authentication</span>
+<span class="command">crypto ipsec transform-set</span> <span class="value">VTI-VPN esp-aes 256 esp-sha256-hmac</span>
+<span class="command">mode</span> <span class="value">tunnel</span></pre>
+                </div>
+            </div>
+
+            <div class="mb-12 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-blue-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">3. การกำหนดค่า IPsec Profile</h3>
+                </div>
+                <div class="command-block p-6">
+                    <pre><span class="comment">! สร้าง IPsec profile และเชื่อมโยงกับ transform set</span>
+<span class="command">crypto ipsec profile</span> <span class="value">VTI-PROFILE</span>
+  <span class="command">set transform-set</span> <span class="value">VTI-VPN</span></pre>
+                </div>
+            </div>
+
+            <div class="mb-12 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-blue-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">4. การกำหนดค่า Tunnel Interface</h3>
+                </div>
+                <div class="command-block p-6">
+                    <pre><span class="comment">! สร้าง tunnel interface และกำหนดค่าพื้นฐาน</span>
+<span class="command">interface</span> <span class="parameter">Tunnel1</span>
+  <span class="command">bandwidth</span> <span class="value">4000</span>
+  <span class="command">ip address</span> <span class="value">172.16.1.1 255.255.255.252</span>
+  <span class="command">ip mtu</span> <span class="value">1400</span>
+  <span class="command">tunnel source</span> <span class="value">64.100.0.2</span>
+  <span class="command">tunnel destination</span> <span class="value">64.100.1.2</span>
+  
+<span class="comment">! เปลี่ยน tunnel mode เป็น IPsec</span>
+  <span class="command">tunnel mode</span> <span class="value">ipsec ipv4</span>
+  
+<span class="comment">! เชื่อมโยง tunnel กับ IPsec profile</span>
+  <span class="command">tunnel protection ipsec profile</span> <span class="value">VTI-PROFILE</span></pre>
+                </div>
+            </div>
+
+            <div class="mb-12 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-blue-600 text-white py-3 px-6">
+                    <h3 class="text-xl font-semibold">5. การกำหนด OSPF บน IPsec VTI</h3>
+                </div>
+                <div class="command-block p-6">
+                    <pre><span class="comment">! กำหนด OSPF process และเพิ่ม network ของ tunnel</span>
+<span class="command">router ospf</span> <span class="value">123</span>
+  <span class="command">network</span> <span class="value">172.16.1.0 0.0.0.3 area 0</span></pre>
+                </div>
+            </div>
+        </section>
+
+        <div class="mb-12 bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-blue-600 text-white py-3 px-6">
+                <h3 class="text-xl font-semibold">6. คำสั่งตรวจสอบ</h3>
+            </div>
+            <div class="command-block p-6">
+<span class="command">show interface tunnel 1</span><br>
+<span class="command">show crypto session</span><br>
+<span class="command">show crypto ipsec sa</span><br>
+            </div>
+        </div>
+    </section>
+
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 pb-2 border-b-2 border-gray-200">การเปรียบเทียบกับ GRE over IPsec</h2>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-md p-6 warning-card">
+                    <h3 class="text-xl font-semibold mb-4">1. ข้อดีของ IPsec VTI เมื่อเทียบกับ GRE</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>ไม่มี overhead ของ GRE header 4 bytes</li>
+                        <li>ประหยัดแบนด์วิดท์ในการส่งข้อมูลเข้ารหัส</li>
+                        <li>การกำหนดค่าที่เรียบง่ายกว่า</li>
+                        <li>ไม่จำเป็นต้องกำหนด ACL</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 warning-card">
+                    <h3 class="text-xl font-semibold mb-4">2. ข้อควรระวังเมื่อใช้ IPsec VTI</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>ค่า MTU ต้องได้รับการกำหนดค่าอย่างเหมาะสม</li>
+                        <li>ควรตรวจสอบการเข้าถึงพอร์ตที่จำเป็นสำหรับ IPsec (UDP 500, ESP 50)</li>
+                        <li>ต้องแน่ใจว่า tunnel source และ destination สามารถเข้าถึงกันได้</li>
+                        <li>ต้องระวังไม่ให้เกิด recursive routing</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 pb-2 border-b-2 border-gray-200">การประยุกต์ใช้ IPsec VTI</h2>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <h3 class="text-xl font-semibold mb-3">1. Site-to-Site VPN</h3>
+                    <p>เหมาะสำหรับการเชื่อมต่อแบบถาวรระหว่างสำนักงานสาขากับสำนักงานใหญ่
+                        โดยมีความปลอดภัยสูงและรองรับโปรโตคอลเราท์ติ้ง</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <h3 class="text-xl font-semibold mb-3">2. สภาพแวดล้อมที่ต้องการความปลอดภัยสูง</h3>
+                    <p>เหมาะสำหรับองค์กรที่ต้องการส่งข้อมูลที่มีความสำคัญผ่านเครือข่ายสาธารณะ
+                        โดยต้องการความปลอดภัยระดับสูง</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <h3 class="text-xl font-semibold mb-3">3. เครือข่ายที่ใช้โปรโตคอลเราท์ติ้งแบบไดนามิก</h3>
+                    <p>เหมาะสำหรับองค์กรที่ต้องการใช้ OSPF, EIGRP หรือโปรโตคอลเราท์ติ้งอื่นๆ ข้ามทันเนล
+                        โดยไม่ต้องการเสียแบนด์วิดท์เพิ่มเติมของ GRE</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <h3 class="text-xl font-semibold mb-3">4. ทางเลือกแทน DMVPN</h3>
+                    <p>หากต้องการทางเลือกที่ง่ายกว่า DMVPN แต่ยังคงต้องการความปลอดภัยและรองรับโปรโตคอลเราท์ติ้ง
+                        โดยไม่ต้องการฟีเจอร์ hub-and-spoke</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <p class="text-center">เอกสารอ้างอิงสำหรับการกำหนดค่า IPsec VTI บนอุปกรณ์ Cisco</p>
+            <p class="text-center text-gray-400 mt-2">© 2025 - สงวนลิขสิทธิ์</p>
+        </div>
+    </footer>
+</body>
+
+</html>
